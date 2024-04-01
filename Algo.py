@@ -1,4 +1,5 @@
 import random
+import heapq
 
 ANNOUNCE_RANGE = 2
 class Map:
@@ -365,31 +366,17 @@ class Seeker(Agent):
     def __init__(self, position, vision_radius, bound, map, id=0, score=0):
         Agent.__init__(self, position, vision_radius, bound, map, id=0, score=0)
         self.id = 3
+        self.heuristic = 0
+
     def catch(self, hider_position):
         return self.position == hider_position
-    
+
     def updatePoint(self, level, hider_position):
         # Catch hider
         if (self.catch(self, hider_position)):
             self.point = 20
         else:
             self.point -= 1
-
-    def get_successors(self, searchType, N):
-        successors = []
-        # Generate the successors of the current state in 4 direction (UP, DOWN, LEFT, RIGHT)
-        successors.append(self.moveUp())
-        successors.append(self.moveDown())
-        successors.append(self.moveLeft())
-        successors.append(self.moveRight())
-        successors.append(self.moveUpRight())
-        successors.append(self.moveUpLeft())
-        successors.append(self.moveDownRight())
-        successors.append(self.moveDownLeft())
-
-        # Remove None values from the list of successors
-        successors = [successor for successor in successors if successor is not None]
-        return successors
 
 class Hider(Agent):
     def __init__(self, position, vision_radius, bound, map, id=0, score=0):
@@ -445,6 +432,7 @@ class Hider(Agent):
             matrix_range.append(row)
 
         return matrix_range, rows, cols, top, left, bottom, right
+    
     def announce(self, seekers_moves):
         if (seekers_moves == 5):
             rows = 0
@@ -468,39 +456,108 @@ class Hider(Agent):
         return announce_coordinate
 
 
-# def trackPath(finalState): #Function to track the path from initial to the goal
-#     path = []
-#     currentState = finalState #Backtrack from Goal
-#     while currentState is not None:
-#         path.insert(0, currentState)
-#         currentState = currentState.parent #Backtrack till reaching the root
-#     return path
+def trackPath(finalState): #Function to track the path from initial to the goal
+    path = []
+    currentState = finalState #Backtrack from Goal
+    while currentState is not None:
+        path.insert(0, currentState)
+        currentState = currentState.parent #Backtrack till reaching the root
+    return path
 
-# def check(currentState): #Check if the current state is the goal state
-#     if currentState.board == currentState.goalBoard:
-#         return True
+def checkGoal(currentState): #Check if the current state is the goal state
+    if currentState.board == currentState.goalBoard:
+        return True
 
-# def isHiderInVision(seeker, hider, maze){
-#     min_x = max(0, seeker_position[0] - 3)
-#     max_x = min(maze_height - 1, seeker_position[0] + 3)
-#     min_y = max(0, seeker_position[1] - 3)
-#     max_y = min(maze_width - 1, seeker_position[1] + 3)
+def isHiderInVision(Seeker, Hider, Map):
+    min_x = max(0, Seeker.position[0] - 3)
+    max_x = min(Map.num_rows - 1, Seeker.position[0] + 3)
+    min_y = max(0, Seeker.position[1] - 3)
+    max_y = min(Map.num_cols - 1, Seeker.position[1] + 3)
 
-#     # Iterate through the cells within the Seeker's vision range
-#     for x in range(min_x, max_x + 1):
-#         for y in range(min_y, max_y + 1):
-#             if game_board[x][y] == 2  # Check if Hider is found
-#                 return True
-#     return False  # Hider not found within the Seeker's vision range
-# }
+    # Iterate through the cells within the Seeker's vision range
+    for x in range(min_x, max_x + 1):
+        for y in range(min_y, max_y + 1):
+            if Map.map_array[x][y] == 2:  # Check if Hider is found
+                return True
+    return False  # Hider not found within the Seeker's vision range
 
-# def isHiderCaught():
+def isHiderCaught(Seeker, Hider):
+    if Seeker.position == Hider.position:
+        return True
+    return False
 
-# def isAnnouncementHeard():
+def isAnnouncementHeard(Seeker):
+    for i in range(len(Seeker.vision)):
+        for j in range(len(Seeker.vision[i])):
+            if Seeker.vision[i][j] == 5:
+                print("Announcement heard at position: ", i, j)
+                return True
+    return False
 
-# def findHider():
+def calculateHeuristic(current, goal):
+    return abs(current[0] - goal[0]) + abs(current[1] - goal[1])
+
+def generateNextRandomGoal(Seeker, Map):
+    x = random.randint(0, Map.num_rows - 1)
+    y = random.randint(0, Map.num_cols - 1)
+    return (x, y)
+
+class SearchState:
+    def __init__(self, currentPosition, goalPosition, parent, heuristic):
+        self.board = currentPosition # 2D array representing the current state of the puzzle
+        self.goalBoard = goalPosition
+        self.parent = parent
+        self.heuristic = heuristic
+        if parent:
+            self.cost = parent.cost + 1 # Cost from the initial state to the current state (Depth)
+        else:
+            self.cost = 0 
+
+    #Priority: Node with lowest "cost + heuristic" in heap will be pop first
+    def __lt__(self, other):
+        total_self_cost = self.cost + self.heuristic
+        total_other_cost = other.cost + other.heuristic
+        return  total_self_cost < total_other_cost
+    def get_successors(self, searchType, N):
+        successors = []
+        # Generate the successors of the current state in 4 direction (UP, DOWN, LEFT, RIGHT)
+        successors.append(self.moveUp())
+        successors.append(self.moveDown())
+        successors.append(self.moveLeft())
+        successors.append(self.moveRight())
+        successors.append(self.moveUpRight())
+        successors.append(self.moveUpLeft())
+        successors.append(self.moveDownRight())
+        successors.append(self.moveDownLeft())
+
+        # Remove None values from the list of successors
+        successors = [successor for successor in successors if successor is not None]
+        return successors
+
+
+def a_star(Seeker, goalPosition):
+    expandedList = set()
+    frontier = []
+    #Generate the initial state and allocate the heuristic value and push it to the frontier
+    initialState = SearchState(Seeker.position, goalPosition, None, calculateHeuristic(Seeker.position, goalPosition))
+
+    heapq.heappush(frontier, initialState)
+    while frontier:
+        currentState = heapq.heappop(frontier) #Pop the state with the lowest cost + heuristic value from the frontier
+        if checkGoal(currentState): #Late-goal test
+            return currentState
+        else:
+            expandedList.add(currentState) #After pop, add to the expanded list
+            successors = currentState.get_successors() #Generate the successors of the current state
+            for successor in successors:
+                if successor not in expandedList: #Check whether the successor is in the expanded list previously, if no -> push to frontier
+                    heapq.heappush(frontier, successor) #Push the successor to the frontier
 
 # def traceHider():
 
-
 # #MAIN 
+# def main():
+
+
+# if __name__ == "__main__":
+#     main()
