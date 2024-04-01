@@ -456,6 +456,8 @@ class Hider(Agent):
         return announce_coordinate
 
 
+#ALGORITHM GOES HERE
+
 def trackPath(finalState): #Function to track the path from initial to the goal
     path = []
     currentState = finalState #Backtrack from Goal
@@ -518,6 +520,9 @@ class SearchState:
         total_self_cost = self.cost + self.heuristic
         total_other_cost = other.cost + other.heuristic
         return  total_self_cost < total_other_cost
+
+    
+
     def get_successors(self, searchType, N):
         successors = []
         # Generate the successors of the current state in 4 direction (UP, DOWN, LEFT, RIGHT)
@@ -553,11 +558,27 @@ def a_star(Seeker, goalPosition):
                 if successor not in expandedList: #Check whether the successor is in the expanded list previously, if no -> push to frontier
                     heapq.heappush(frontier, successor) #Push the successor to the frontier
 
-# def traceHider():
+def traceHider(Seeker, Hider):
+    finalState = a_star(Seeker, Hider.position)
+    path = trackPath(finalState)
+
 
 # #MAIN 
-# def main():
+def main():
+    current_map = Map()
+    current_map.read_txt_file("test_map.txt")
 
+    print("Dimensions of the table:", current_map.num_rows, "rows,", current_map.num_cols, "columns")
+    print("Position of hiders:", current_map.hider_position)
+    print("Position of seeker:", current_map.seeker_position)
+    print("Position of obstacles:", current_map.obstacles_position)
+    current_map.createMap(1)
 
-# if __name__ == "__main__":
-#     main()
+    finalState = a_star(Seeker, generateNextRandomGoal(Seeker, Map))
+    path = trackPath(finalState)
+    for i, state in enumerate(path):
+        print(f"Step {i+1}:") 
+        print()
+
+if __name__ == "__main__":
+    main()
