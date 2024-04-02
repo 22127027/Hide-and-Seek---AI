@@ -53,6 +53,10 @@ class Map:
                 for j in range(left, right + 1):
                     self.map_array[i][j] = 4
     
+    def updateMap(self, map_array):
+        self.map_array = map_array
+
+
 def printMap(map_array):
     init()
     for row in range(0, len(map_array)):
@@ -400,6 +404,7 @@ class Seeker(Agent):
     def __init__(self, position, vision_radius, bound, map):
         Agent.__init__(self, position, vision_radius, bound, map)
         self.map_array = copy.deepcopy(map.map_array)
+        self.hiderNum = len(map.hider_position)
         for i in range (0, len(self.map_array)):
             for j in range (0, len(self.map_array[i])):
                 if self.map_array[i][j] == 2:
@@ -593,7 +598,7 @@ class SearchState:
             return None
     
     def moveRight(self):
-        if self.currentPosition[0] < len(self.map_array[0]) - 1 and self.map_array[self.currentPosition[0]][self.currentPosition[1] + 1] == 0:
+        if self.currentPosition[1] < len(self.map_array[0]) - 1 and self.map_array[self.currentPosition[0]][self.currentPosition[1] + 1] == 0:
             new_position = (self.currentPosition[0], self.currentPosition[1] + 1)
             return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array)
         else:
@@ -668,51 +673,132 @@ def a_star(Seeker, goalPosition):
 #     path = trackPath(finalState)
 
 #MAIN
-print()
-print("----------------------------------------------------------")
-print("Test Map 2")
-current_map2 = Map()
-current_map2.read_txt_file("test_map2.txt")
-printMap(current_map2.map_array)
-print()
-print("----------------------------------------------------------")
-print("Seeker Map")
-bound = (current_map2.num_rows, current_map2.num_cols)
-currentSeeker = Seeker(current_map2.seeker_position[0], 3, bound, current_map2)
-currentSeeker.printSeekerMap()
-
-# randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
-randomPosition = (6, 19)
-print("Random Position Seeker will explore: ", randomPosition)
-print()
-print("----------------------------------------------------------")
-finalState = a_star(currentSeeker, randomPosition)
-path = trackPath(finalState)
-print("Path to the random position: ")
-for i, state in enumerate(path):
-    print("Step", i + 1, ": explore", state.currentPosition)
-print()
-for i in range(len(path)):
-    currentSeeker.updateSeeker(path[i].currentPosition)
+level = input("Enter the level: ")
+if level == "1":
     print()
-    currentSeeker.printSeekerMap()
-    if (isHiderInVision(currentSeeker, current_map2)):
-        finalState = a_star(currentSeeker, current_map2.hider_position[0])
-        print("Update Seeker Map")
-        currentSeeker.updateHiderPosition(current_map2.hider_position[0])
-        path = trackPath(finalState)
-        print("Path to the hider: ")
-        for i, state in enumerate(path):
-            print("Step", i + 1, ": Go to ", state.currentPosition)
-        print("----------------------------------------------------------")
-        for i in range(len(path)):
-            currentSeeker.updateSeeker(path[i].currentPosition)
-            print()
-            currentSeeker.printSeekerMap()
-        # if (isHiderCaught(currentSeeker, current_map2.hider_position[0])):
-        print("Hider caught")
-        break
-print("End Game")
+    print("----------------------------------------------------------")
+    print("Test Map 2")
+    current_map2 = Map()
+    current_map2.read_txt_file("test_map2.txt")
+    printMap(current_map2.map_array)
+    print()
+    print("----------------------------------------------------------")
+    bound = (current_map2.num_rows, current_map2.num_cols)
+    currentSeeker = Seeker(current_map2.seeker_position[0], 3, bound, current_map2)
+
+    # randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
+    randomPosition = (6, 19)
+    print("Random Position Seeker will explore: ", randomPosition)
+    print()
+    print("----------------------------------------------------------")
+    finalState = a_star(currentSeeker, randomPosition)
+    path = trackPath(finalState)
+    print("Path to the random position: ")
+    for i, state in enumerate(path):
+        print("Step", i + 1, ": explore", state.currentPosition)
+    print()
+    for i in range(len(path)):
+        currentSeeker.updateSeeker(path[i].currentPosition)
+        
+        print()
+        currentSeeker.printSeekerMap()
+        if (isHiderInVision(currentSeeker, current_map2)):
+            finalState = a_star(currentSeeker, current_map2.hider_position[0])
+            print("Update Seeker Map")
+            currentSeeker.updateHiderPosition(current_map2.hider_position[0])
+            path = trackPath(finalState)
+            print("Path to the hider: ")
+            for i, state in enumerate(path):
+                print("Step", i + 1, ": Go to ", state.currentPosition)
+            print("----------------------------------------------------------")
+            for i in range(len(path)):
+                currentSeeker.updateSeeker(path[i].currentPosition)
+                print()
+                currentSeeker.printSeekerMap()
+            # if (isHiderCaught(currentSeeker, current_map2.hider_position[0])):
+            print("Hider caught")
+            break
+    print("End Game")
+
+if level == "2":
+    print()
+    print("----------------------------------------------------------")
+    print("Test Map 3")
+    current_map3 = Map()
+    current_map3.read_txt_file("test_map3.txt")
+    printMap(current_map3.map_array)
+    print()
+    print("----------------------------------------------------------")
+    print("Seeker Map")
+    bound = (current_map3.num_rows, current_map3.num_cols)
+    currentSeeker = Seeker(current_map3.seeker_position[0], 3, bound, current_map3)
+
+    # randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
+    randomPosition = (6, 19)
+    print("Random Position Seeker will explore: ", randomPosition)
+    print()
+    print("----------------------------------------------------------")
+    finalState = a_star(currentSeeker, randomPosition)
+    path = trackPath(finalState)
+    print("Path to the random position: ")
+    for i, state in enumerate(path):
+        print("Step", i + 1, ": explore", state.currentPosition)
+    print()
+    for i in range(len(path)):
+        currentSeeker.updateSeeker(path[i].currentPosition)
+        print()
+        
+        if (isHiderInVision(currentSeeker, current_map3)):
+            finalState = a_star(currentSeeker, current_map3.hider_position[0])
+            print("Update Seeker Map")
+            currentSeeker.updateHiderPosition(current_map3.hider_position[0])
+            path = trackPath(finalState)
+            print("Path to the hider: ")
+            for i, state in enumerate(path):
+                print("Step", i + 1, ": Go to ", state.currentPosition)
+            print("----------------------------------------------------------")
+            for i in range(len(path)):
+                currentSeeker.updateSeeker(path[i].currentPosition)
+                print()
+            current_map3.map_array[currentSeeker.position[0]][currentSeeker.position[1]] = 0
+            printMap(current_map3.map_array)
+            currentSeeker.hiderNum -= 1
+            print(currentSeeker.hiderNum)
+            print("Hider caught")
+            break
+
+    randomPosition = (8, 13)
+    finalState = a_star(currentSeeker, randomPosition)
+    path = trackPath(finalState)
+    print("Path to the random position: ")
+    for i, state in enumerate(path):
+        print("Step", i + 1, ": explore", state.currentPosition)
+    print()
+    for i in range(len(path)):
+        currentSeeker.updateSeeker(path[i].currentPosition)
+        print()
+        currentSeeker.printSeekerMap()
+        if (isHiderInVision(currentSeeker, current_map3)):
+            finalState = a_star(currentSeeker, current_map3.hider_position[1])
+            print("Update Seeker Map")
+            currentSeeker.updateHiderPosition(current_map3.hider_position[1])
+            path = trackPath(finalState)
+            print("Path to the hider: ")
+            for i, state in enumerate(path):
+                print("Step", i + 1, ": Go to ", state.currentPosition)
+            print("----------------------------------------------------------")
+            for i in range(len(path)):
+                currentSeeker.updateSeeker(path[i].currentPosition)
+                print()
+                currentSeeker.printSeekerMap()
+            current_map3.map_array[currentSeeker.position[0]][currentSeeker.position[1]] = 0
+            printMap(current_map3.map_array)
+            currentSeeker.hiderNum -= 1
+            print(currentSeeker.hiderNum)
+            print("Hider caught")
+            break
+    print("End Game")
+
     # Seeker = Seeker(current_map.seeker_position[0], 3, (current_map.num_rows, current_map.num_cols), current_map.map_array)
 
     # finalState = a_star(Seeker, generateNextRandomGoal(Seeker, Map))
