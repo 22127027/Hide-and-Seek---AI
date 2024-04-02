@@ -555,7 +555,7 @@ class SearchState:
         return  total_self_cost < total_other_cost
 
     def moveUp(self):
-        if self.currentPosition[0] > 0:
+        if self.currentPosition[0] > 0 and self.map_array[self.currentPosition[0] - 1][self.currentPosition[1]] == 0:
             new_position = (self.currentPosition[0] - 1, self.currentPosition[1])
             self.direction.append("UP")
             return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
@@ -563,7 +563,7 @@ class SearchState:
             return None
     
     def moveDown(self):
-        if self.currentPosition[0] < len(self.map_array) - 1:
+        if self.currentPosition[0] < len(self.map_array) - 1 and self.map_array[self.currentPosition[0] + 1][self.currentPosition[1]] == 0:
             new_position = (self.currentPosition[0] + 1, self.currentPosition[1])
             self.direction.append("DOWN")
             return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
@@ -571,7 +571,7 @@ class SearchState:
             return None
 
     def moveLeft(self):
-        if self.currentPosition[1] > 0:
+        if self.currentPosition[1] > 0 and self.map_array[self.currentPosition[0]][self.currentPosition[1] - 1] == 0:
             new_position = (self.currentPosition[0], self.currentPosition[1] - 1)
             self.direction.append("LEFT")
             return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
@@ -579,7 +579,7 @@ class SearchState:
             return None
     
     def moveRight(self):
-        if self.currentPosition[0] < len(self.map_array[0]) - 1:
+        if self.currentPosition[0] < len(self.map_array[0]) - 1 and self.map_array[self.currentPosition[0]][self.currentPosition[1] + 1] == 0:
             new_position = (self.currentPosition[0], self.currentPosition[1] + 1)
             self.direction.append("RIGHT")
             return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
@@ -587,7 +587,7 @@ class SearchState:
             return None
     
     def moveUpRight(self):
-        if self.currentPosition[0] > 0 and self.currentPosition[1] < len(self.map_array[0]) - 1:
+        if self.currentPosition[0] > 0 and self.currentPosition[1] < len(self.map_array[0]) - 1 and self.map_array[self.currentPosition[0] - 1][self.currentPosition[1] + 1] == 0:
             new_position = (self.currentPosition[0] - 1, self.currentPosition[1] + 1)
             self.direction.append("UP_RIGHT")
             return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
@@ -595,7 +595,7 @@ class SearchState:
             return None
     
     def moveUpLeft(self):
-        if self.currentPosition[0] > 0 and self.currentPosition[1] > 0:
+        if self.currentPosition[0] > 0 and self.currentPosition[1] > 0 and self.map_array[self.currentPosition[0] - 1][self.currentPosition[1] - 1] == 0:
             new_position = (self.currentPosition[0] - 1, self.currentPosition[1] - 1)
             self.direction.append("UP_LEFT")
             return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
@@ -603,7 +603,7 @@ class SearchState:
             return None
         
     def moveDownRight(self):
-        if self.currentPosition[0] < len(self.map_array) - 1 and self.currentPosition[1] < len(self.map_array[0]) - 1:
+        if self.currentPosition[0] < len(self.map_array) - 1 and self.currentPosition[1] < len(self.map_array[0]) - 1 and self.map_array[self.currentPosition[0] + 1][self.currentPosition[1] + 1] == 0:
             new_position = (self.currentPosition[0] + 1, self.currentPosition[1] + 1)
             self.direction.append("DOWN_RIGHT")
             return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
@@ -611,7 +611,7 @@ class SearchState:
             return None
     
     def moveDownLeft(self):
-        if self.currentPosition[0] < len(self.map_array) - 1 and self.currentPosition[1] > 0:
+        if self.currentPosition[0] < len(self.map_array) - 1 and self.currentPosition[1] > 0 and self.map_array[self.currentPosition[0] + 1][self.currentPosition[1] - 1] == 0:
             new_position = (self.currentPosition[0] + 1, self.currentPosition[1] - 1)
             self.direction.append("DOWN_LEFT")
             return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
