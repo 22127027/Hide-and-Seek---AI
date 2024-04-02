@@ -1,6 +1,7 @@
 import random
 import heapq
 from colorama import init, Fore, Style
+import copy
 
 ANNOUNCE_RANGE = 2
 class Map:
@@ -312,27 +313,35 @@ class Agent:
         self.current_direction = self.directions_word[direction_index]
 
     def agent_go_right(self):
+        print("Right")
         self.move(0)
 
     def agent_go_left(self):
+        print("Left")
         self.move(1)
 
     def agent_go_down(self):
+        print("Down")
         self.move(2)
 
     def agent_go_up(self):
+        print("Up")
         self.move(3)
 
     def agent_go_down_right(self):
+        print("Down Right")
         self.move(4)
 
     def agent_go_down_left(self):
+        print("Down Left")
         self.move(5)
 
     def agent_go_up_right(self):
+        print("Up Right")
         self.move(6)
 
     def agent_go_up_left(self):
+        print("Up Left")
         self.move(7)
     
 
@@ -390,7 +399,7 @@ class Agent:
 class Seeker(Agent): 
     def __init__(self, position, vision_radius, bound, map):
         Agent.__init__(self, position, vision_radius, bound, map)
-        self.map_array = map.map_array
+        self.map_array = copy.deepcopy(map.map_array)
         for i in range (0, len(self.map_array)):
             for j in range (0, len(self.map_array[i])):
                 if self.map_array[i][j] == 2:
@@ -408,6 +417,13 @@ class Seeker(Agent):
     
     def printSeekerMap(self):
         printMap(self.map_array)
+    def updateSeeker(self, position):
+        self.map_array[self.position[0]][self.position[1]] = 0
+        self.map_array[position[0]][position[1]] = 3
+        self.position = position
+    def updateHiderPosition(self, position):
+        self.map_array[position[0]][position[1]] = 2
+    
 
 # class Hider(Agent):
 #     def __init__(self, position, vision_radius, bound, map, id=0, score=0):
@@ -502,23 +518,25 @@ def checkGoal(currentState): #Check if the current state is the goal state
         return True
     return False
 
-def isHiderInVision(Seeker, Hider, Map):
+def isHiderInVision(Seeker, Map):
     min_x = max(0, Seeker.position[0] - 3)
     max_x = min(Map.num_rows - 1, Seeker.position[0] + 3)
     min_y = max(0, Seeker.position[1] - 3)
     max_y = min(Map.num_cols - 1, Seeker.position[1] + 3)
-
+    
     # Iterate through the cells within the Seeker's vision range
     for x in range(min_x, max_x + 1):
         for y in range(min_y, max_y + 1):
-            if Map.map_array[x][y] == 2:  # Check if Hider is found
+            if Map.map_array[x][y] == 2:  # Check if Hider is in vision
+                print("Hider found at position: ", x, y)
+                # Seeker.updateGoal((x, y))
                 return True
-    return False  # Hider not found within the Seeker's vision range
-
-def isHiderCaught(Seeker, Hider):
-    if Seeker.position == Hider.position:
-        return True
     return False
+
+# def isHiderAllCaught():
+#     if Seeker.position == Hider.position:
+#         return True
+#     return False
 
 def isAnnouncementHeard(Seeker):
     for i in range(len(Seeker.vision)):
@@ -536,13 +554,12 @@ def generateNextRandomGoal(Seeker, Map):
     return (x, y)
 
 class SearchState:
-    def __init__(self, current_position, goal_position, parent, heuristic, map_array, moveDirection):
+    def __init__(self, current_position, goal_position, parent, heuristic, map_array):
         self.currentPosition = current_position 
         self.goalPosition = goal_position
         self.parent = parent
         self.heuristic = heuristic
         self.map_array = map_array
-        self.direction = moveDirection
         if parent:
             self.cost = parent.cost + 1 
         else:
@@ -557,64 +574,56 @@ class SearchState:
     def moveUp(self):
         if self.currentPosition[0] > 0 and self.map_array[self.currentPosition[0] - 1][self.currentPosition[1]] == 0:
             new_position = (self.currentPosition[0] - 1, self.currentPosition[1])
-            self.direction.append("UP")
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array)
         else:
             return None
     
     def moveDown(self):
         if self.currentPosition[0] < len(self.map_array) - 1 and self.map_array[self.currentPosition[0] + 1][self.currentPosition[1]] == 0:
             new_position = (self.currentPosition[0] + 1, self.currentPosition[1])
-            self.direction.append("DOWN")
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array)
         else:
             return None
 
     def moveLeft(self):
         if self.currentPosition[1] > 0 and self.map_array[self.currentPosition[0]][self.currentPosition[1] - 1] == 0:
             new_position = (self.currentPosition[0], self.currentPosition[1] - 1)
-            self.direction.append("LEFT")
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array)
         else:
             return None
     
     def moveRight(self):
         if self.currentPosition[0] < len(self.map_array[0]) - 1 and self.map_array[self.currentPosition[0]][self.currentPosition[1] + 1] == 0:
             new_position = (self.currentPosition[0], self.currentPosition[1] + 1)
-            self.direction.append("RIGHT")
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array)
         else:
             return None
     
     def moveUpRight(self):
         if self.currentPosition[0] > 0 and self.currentPosition[1] < len(self.map_array[0]) - 1 and self.map_array[self.currentPosition[0] - 1][self.currentPosition[1] + 1] == 0:
             new_position = (self.currentPosition[0] - 1, self.currentPosition[1] + 1)
-            self.direction.append("UP_RIGHT")
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array)
         else:
             return None
     
     def moveUpLeft(self):
         if self.currentPosition[0] > 0 and self.currentPosition[1] > 0 and self.map_array[self.currentPosition[0] - 1][self.currentPosition[1] - 1] == 0:
             new_position = (self.currentPosition[0] - 1, self.currentPosition[1] - 1)
-            self.direction.append("UP_LEFT")
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array)
         else:
             return None
         
     def moveDownRight(self):
         if self.currentPosition[0] < len(self.map_array) - 1 and self.currentPosition[1] < len(self.map_array[0]) - 1 and self.map_array[self.currentPosition[0] + 1][self.currentPosition[1] + 1] == 0:
             new_position = (self.currentPosition[0] + 1, self.currentPosition[1] + 1)
-            self.direction.append("DOWN_RIGHT")
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array)
         else:
             return None
     
     def moveDownLeft(self):
         if self.currentPosition[0] < len(self.map_array) - 1 and self.currentPosition[1] > 0 and self.map_array[self.currentPosition[0] + 1][self.currentPosition[1] - 1] == 0:
             new_position = (self.currentPosition[0] + 1, self.currentPosition[1] - 1)
-            self.direction.append("DOWN_LEFT")
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array)
         else:
             return None
 
@@ -640,8 +649,7 @@ def a_star(Seeker, goalPosition):
     frontier = []
     #Generate the initial state and allocate the heuristic value and push it to the frontier
     # print(type(Seeker.position))
-    moveDirection = []
-    initialState = SearchState(Seeker.position, goalPosition, None, calculateHeuristic(Seeker.position, goalPosition), Seeker.map_array, moveDirection)
+    initialState = SearchState(Seeker.position, goalPosition, None, calculateHeuristic(Seeker.position, goalPosition), Seeker.map_array)
 
     heapq.heappush(frontier, initialState)
     while frontier:
@@ -661,29 +669,50 @@ def a_star(Seeker, goalPosition):
 
 #MAIN
 print()
-print()
-print()
 print("----------------------------------------------------------")
+print("Test Map 2")
 current_map2 = Map()
 current_map2.read_txt_file("test_map2.txt")
 printMap(current_map2.map_array)
 print()
-print()
-print()
 print("----------------------------------------------------------")
+print("Seeker Map")
 bound = (current_map2.num_rows, current_map2.num_cols)
 currentSeeker = Seeker(current_map2.seeker_position[0], 3, bound, current_map2)
 currentSeeker.printSeekerMap()
 
 # randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
-hiderPos = (6, 19)
-print("Random Position: ", hiderPos)
-finalState = a_star(currentSeeker, hiderPos)
+randomPosition = (6, 19)
+print("Random Position Seeker will explore: ", randomPosition)
+print()
+print("----------------------------------------------------------")
+finalState = a_star(currentSeeker, randomPosition)
 path = trackPath(finalState)
+print("Path to the random position: ")
 for i, state in enumerate(path):
-    print("Step", i + 1, ":", state.currentPosition)
-        
-
+    print("Step", i + 1, ": explore", state.currentPosition)
+print()
+for i in range(len(path)):
+    currentSeeker.updateSeeker(path[i].currentPosition)
+    print()
+    currentSeeker.printSeekerMap()
+    if (isHiderInVision(currentSeeker, current_map2)):
+        finalState = a_star(currentSeeker, current_map2.hider_position[0])
+        print("Update Seeker Map")
+        currentSeeker.updateHiderPosition(current_map2.hider_position[0])
+        path = trackPath(finalState)
+        print("Path to the hider: ")
+        for i, state in enumerate(path):
+            print("Step", i + 1, ": Go to ", state.currentPosition)
+        print("----------------------------------------------------------")
+        for i in range(len(path)):
+            currentSeeker.updateSeeker(path[i].currentPosition)
+            print()
+            currentSeeker.printSeekerMap()
+        # if (isHiderCaught(currentSeeker, current_map2.hider_position[0])):
+        print("Hider caught")
+        break
+print("End Game")
     # Seeker = Seeker(current_map.seeker_position[0], 3, (current_map.num_rows, current_map.num_cols), current_map.map_array)
 
     # finalState = a_star(Seeker, generateNextRandomGoal(Seeker, Map))
