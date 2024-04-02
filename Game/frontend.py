@@ -1,4 +1,5 @@
 from backend import current_map, Agent, Hider
+from screens import menu_screen
 import pygame
 
 '''
@@ -19,12 +20,10 @@ HEIGHT += INFO_BAR
 block_edge = (HEIGHT - INFO_BAR) / current_map.num_rows
 
 pygame.init()
-
-screen = pygame.display.set_mode([WIDTH, HEIGHT])
-pygame.display.set_caption("HideAndSeek")
+screen = pygame.display.init()
 timer = pygame.time.Clock()
 fps = 60
-font = pygame.font.Font('freesansbold.ttf', 20)
+font = pygame.font.Font('freesansbold.ttf', 27)
 counter = 0
 seeker_images = []
 for i in range(1, 5):
@@ -69,24 +68,24 @@ def draw_agent(i, j, isSeeker):
 		VISION_RADIUS = HIDER_VISION_RADIUS
 		VISION_COLOR = (255, 128, 0, 64)
 	#Draw vision
-	seeker = Agent((i, j), VISION_RADIUS, (current_map.num_rows, current_map.num_cols), current_map.map_array)
-	seeker.agent_valid_vision()
+	agent = Agent((i, j), VISION_RADIUS, (current_map.num_rows, current_map.num_cols), current_map.map_array)
+	agent.agent_valid_vision()
 	listOfValidVision = []
-	for valid in seeker.valid_vision_left:
+	for valid in agent.valid_vision_left:
 		listOfValidVision.append(valid)
-	for valid in seeker.valid_vision_up_left:
+	for valid in agent.valid_vision_up_left:
 		listOfValidVision.append(valid)
-	for valid in seeker.valid_vision_up:
+	for valid in agent.valid_vision_up:
 		listOfValidVision.append(valid)
-	for valid in seeker.valid_vision_up_right:
+	for valid in agent.valid_vision_up_right:
 		listOfValidVision.append(valid)
-	for valid in seeker.valid_vision_right:
+	for valid in agent.valid_vision_right:
 		listOfValidVision.append(valid)
-	for valid in seeker.valid_vision_down_right:
+	for valid in agent.valid_vision_down_right:
 		listOfValidVision.append(valid)
-	for valid in seeker.valid_vision_down:
+	for valid in agent.valid_vision_down:
 		listOfValidVision.append(valid)
-	for valid in seeker.valid_vision_down_left:
+	for valid in agent.valid_vision_down_left:
 		listOfValidVision.append(valid)	
 	for valid in listOfValidVision:
 		top_ = valid[1] * block_edge
@@ -96,12 +95,17 @@ def draw_agent(i, j, isSeeker):
 		s.fill(VISION_COLOR)
 		screen.blit(s, (top_, left_))
 
+level_map = []
 running = True
 while running:
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT:
-			running = False
-		elif event.type == pygame
+	if len(level_map) == 0:
+		menu_screen(font, level_map)
+		if len(level_map) != 2:
+			break
+
+		pygame.display.quit()
+		screen = pygame.display.set_mode([WIDTH, HEIGHT])
+		pygame.display.set_caption("HideAndSeek")
 
 	timer.tick(fps)
 	if counter < 39:
@@ -111,6 +115,10 @@ while running:
 
 	screen.fill((64, 64, 64))
 	draw_board(current_map)
+
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			running = False
 
 	pygame.display.flip()
 

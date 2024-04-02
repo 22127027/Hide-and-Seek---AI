@@ -48,7 +48,7 @@ class Button():
 
 		return isClicked
 
-def menu_screen(font):
+def menu_screen(font, level_map):
 	HEIGHT = 400
 	WIDTH = 800
 
@@ -70,7 +70,9 @@ def menu_screen(font):
 		screen.blit(text, (350, 50))
 
 		if start_button.draw(screen):
-			level_choose_screen(screen, font)
+			level_choose_screen(screen, font, level_map)
+			if len(level_map) == 2 and level_map != [0, 0]:
+				break
 		if exit_button.draw(screen):
 			running = False
 
@@ -79,20 +81,19 @@ def menu_screen(font):
 				running = False
 
 		pygame.display.flip()
-	pygame.quit()
 
-def level_choose_screen(screen, font):
+def level_choose_screen(screen, font, level_map):
 	background_image = pygame.transform.scale(pygame.image.load('Assets/background_images/background2.png'), pygame.display.get_window_size())
 	button_image = pygame.image.load('Assets/button_images/button3.png')
 	x = 150
 	y = 100
-	level1_button = Button(x, y, button_image, 0.07, 'LEVEL 1', font, (x + 30, y + 23))
-	level2_button = Button(x + 200, y, button_image, 0.07, 'LEVEL 2', font, (x + 230, y + 23))
-	level3_button = Button(x + 400, y, button_image, 0.07, 'LEVEL 3', font, (x + 430, y + 23))
-	level4_button = Button(x + 200, y + 90, button_image, 0.07, 'LEVEL 4', font, (x + 230, y + 113))
+	level1_button = Button(x + 100, y, button_image, 0.07, 'LEVEL 1', font, (x + 130, y + 23))
+	level2_button = Button(x + 100, y + 90, button_image, 0.07, 'LEVEL 2', font, (x + 130, y + 113))
+	level3_button = Button(x + 300, y, button_image, 0.07, 'LEVEL 3', font, (x + 330, y + 23))
+	level4_button = Button(x + 300, y + 90, button_image, 0.07, 'LEVEL 4', font, (x + 330, y + 113))
 
 	exit_button_image = pygame.image.load('Assets/button_images/button4.png')
-	exit_button = Button(0, 300, exit_button_image, 0.5, 'Back', font)
+	exit_button = Button(15, 300, exit_button_image, 0.5, 'Back', font)
 
 	text = font.render("CHOOSE A LEVEL TO PROCEED", True, "blue")
 
@@ -103,13 +104,24 @@ def level_choose_screen(screen, font):
 		screen.blit(text, (220, 35))
 
 		if level1_button.draw(screen):
-			map_choose_screen(screen, font)
+			level_map.append(1)
+			level_map.append(0)
+			break
 		if level2_button.draw(screen):
-			map_choose_screen(screen, font)
+			level_map.append(2)
+			map_choose_screen(screen, font, level_map)
+			if len(level_map) == 2:
+				break
 		if level3_button.draw(screen):
-			map_choose_screen(screen, font)
+			level_map.append(3)
+			map_choose_screen(screen, font, level_map)
+			if len(level_map) == 2:
+				break
 		if level4_button.draw(screen):
-			map_choose_screen(screen, font)
+			level_map.append(4)
+			map_choose_screen(screen, font, level_map)
+			if len(level_map) == 2:
+				break
 		if exit_button.draw(screen):
 			running = False
 
@@ -119,11 +131,11 @@ def level_choose_screen(screen, font):
 
 		pygame.display.flip()
 
-def map_choose_screen(screen, font):
+def map_choose_screen(screen, font, level_map):
 	background_image = pygame.transform.scale(pygame.image.load('Assets/background_images/background3.png'), pygame.display.get_window_size())
 	button_image = pygame.image.load('Assets/button_images/button3.png')
 
-	x = 400
+	x = 365
 	y = 50
 	map1_button = Button(x - 200, y, button_image, 0.06, 'Map 1', font, (x - 165, y + 16))
 	map2_button = Button(x - 100, y + 70, button_image, 0.06, 'Map 2', font, (x - 65, y + 86))
@@ -143,18 +155,23 @@ def map_choose_screen(screen, font):
 		screen.blit(text, (50, 10))
 
 		if map1_button.draw(screen):
-			print('clicked')
+			level_map.append(1)
+			break
 		if map2_button.draw(screen):
-			print('clicked')
+			level_map.append(2)
+			break
 		if map3_button.draw(screen):
-			print('clicked')
+			level_map.append(3)
+			break
 		if map4_button.draw(screen):
-			print('clicked')
+			level_map.append(4)
+			break
 		if map5_button.draw(screen):
-			print('clicked')
+			level_map.append(5)
+			break
 		if exit_button.draw(screen):
+			level_map.pop()
 			running = False
-
 
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -162,9 +179,80 @@ def map_choose_screen(screen, font):
 
 		pygame.display.flip()
 
-pygame.init()
-menu_screen(pygame.font.Font('freesansbold.ttf', 27))
+def win_screen(font, point, time_spent):
+	HEIGHT = 400
+	WIDTH = 800
+	pygame.display.quit()
+	timer = pygame.time.Clock()
+	screen = pygame.display.set_mode((WIDTH, HEIGHT))
+	win_image = pygame.transform.scale(pygame.image.load('Assets/background_images/background4.png'), (WIDTH, HEIGHT))
+	text1 = font.render("SEEKER WON BY CAPTURING ALL HIDERS!", True, 'white')
+	text2 = font.render("Total points: " + str(point) + "   Time spent: " + str(time_spent) + 's', True, 'white')
+	font = pygame.font.Font('freesansbold.ttf', 20)
+	font.italic = True
+	text3 = font.render('Press any key to come back to the main menu...', True, 'gray')
 
+	counter = 0
+	running = True
+	while running:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				running = False
+			elif event.type == pygame.KEYDOWN:
+				running = False
 
+		screen.blit(win_image, (0, 0))
+		screen.blit(text1, (110, 90))
+		screen.blit(text2, (160, 125))
 
+		timer.tick(60)
+		if counter < 50:
+			screen.blit(text3, (160, 200))
+			counter += 1
+		elif counter > 100:
+			counter = 0
+		else:
+			counter += 1
 
+		pygame.display.flip()
+
+def lose_screen(font, point, time_spent):
+	HEIGHT = 400
+	WIDTH = 800
+	pygame.display.quit()
+	timer = pygame.time.Clock()
+	screen = pygame.display.set_mode((WIDTH, HEIGHT))
+	win_image = pygame.transform.scale(pygame.image.load('Assets/background_images/background5.png'), (WIDTH, HEIGHT))
+	text1 = font.render("SEEKER LOST BY TIME OUT!", True, 'black')
+	text2 = font.render("Total points: " + str(point) + "   Total time spent: " + str(time_spent) + 's', True, 'black')
+	font = pygame.font.Font('freesansbold.ttf', 20)
+	font.italic = True
+	text3 = font.render('Press any key to come back to the main menu...', True, (255, 255, 255))
+
+	counter = 0
+	running = True
+	while running:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				running = False
+			elif event.type == pygame.KEYDOWN:
+				running = False
+
+		screen.blit(win_image, (0, 0))
+		screen.blit(text1, (220, 20))
+		screen.blit(text2, (160, 110))
+
+		timer.tick(60)
+		if counter < 50:
+			screen.blit(text3, (190, 350))
+			counter += 1
+		elif counter > 100:
+			counter = 0
+		else:
+			counter += 1
+
+		pygame.display.flip()
+
+#pygame.init()
+#win_screen(pygame.font.Font('freesansbold.ttf', 27), 40, 40)
+#lose_screen(pygame.font.Font('freesansbold.ttf', 27), 40, 40)
