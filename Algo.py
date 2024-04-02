@@ -163,11 +163,11 @@ class Obstacles:
 
 class Agent:
     #Agent k pass nguyen map vo duoc, Hider store 1 cai map khac vs Seeker
-    def __init__(self, position, vision_radius, bound, map, score=0):
+    def __init__(self, position, vision_radius, bound, map):
         self.position = position
         self.vision_radius = vision_radius
-        self.score = score
         self.bound = bound
+        self.score = 0
         self.map_array = map.map_array
 
         self.directions = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1 , 1), (-1, -1)] # go right, left, down, up, down_right, down_left, up_right, up_left 
@@ -194,7 +194,7 @@ class Agent:
         self.valid_movement = []
 
         self.obstacles_list = []
-        self.load_obstacles()
+        # self.load_obstacles()
 
     def check_diagonal(self, row, col, direction):
         for i in range(1, self.vision_radius + 1):
@@ -334,12 +334,13 @@ class Agent:
 
     def agent_go_up_left(self):
         self.move(7)
+    
 
-    def load_obstacles(self):
-        for obstacle_pos in current_map.obstacles_position:
-            pos = [int(x) for x in obstacle_pos.split()]
-            obs = Obstacles(pos[0], pos[1], pos[2], pos[3], current_map.obstacles_position.index(obstacle_pos))
-            self.obstacles_list.append(obs)
+    # def load_obstacles(self):
+    #     for obstacle_pos in current_map.obstacles_position:
+    #         pos = [int(x) for x in obstacle_pos.split()]
+    #         obs = Obstacles(pos[0], pos[1], pos[2], pos[3], current_map.obstacles_position.index(obstacle_pos))
+    #         self.obstacles_list.append(obs)
 
     def push(self):
         for obstacle in self.obstacles_list:
@@ -387,17 +388,13 @@ class Agent:
 
 
 class Seeker(Agent): 
-    def __init__(self, position, vision_radius, bound, map, id=0, score=0):
-        Agent.__init__(self, position, vision_radius, bound, map, id=0, score=0)
-        self.id = 3
-        self.heuristic = 0
-        self.map_array = []
-        for i in range (0, self.len(map.map_array)):
-            for j in range (0, self.len(map.map_array[i])):
-                if map.map_array[i][j] == 2:
-                    self.map[i][j] = 0
-                else:
-                    self.map[i][j] = map.map_array[i][j]
+    def __init__(self, position, vision_radius, bound, map):
+        Agent.__init__(self, position, vision_radius, bound, map)
+        self.map_array = map.map_array
+        for i in range (0, len(self.map_array)):
+            for j in range (0, len(self.map_array[i])):
+                if self.map_array[i][j] == 2:
+                    self.map_array[i][j] = 0
 
     def catch(self, hider_position):
         return self.position == hider_position
@@ -412,85 +409,85 @@ class Seeker(Agent):
     def printSeekerMap(self):
         printMap(self.map_array)
 
-class Hider(Agent):
-    def __init__(self, position, vision_radius, bound, map, id=0, score=0):
-        Agent.__init__(self, position, vision_radius, bound, map, id=0, score=0)
-        self.id = 2
-    def unit_range(self):
-        top = self.position[0] - ANNOUNCE_RANGE
-        left = self.position[1] - ANNOUNCE_RANGE
-        bottom = self.position[0] + ANNOUNCE_RANGE
-        right = self.position[1] + ANNOUNCE_RANGE
+# class Hider(Agent):
+#     def __init__(self, position, vision_radius, bound, map, id=0, score=0):
+#         Agent.__init__(self, position, vision_radius, bound, map, id=0, score=0)
+#         self.id = 2
+#     def unit_range(self):
+#         top = self.position[0] - ANNOUNCE_RANGE
+#         left = self.position[1] - ANNOUNCE_RANGE
+#         bottom = self.position[0] + ANNOUNCE_RANGE
+#         right = self.position[1] + ANNOUNCE_RANGE
 
-        if (self.position[0] - ANNOUNCE_RANGE < 0):
-            index = 1
-            while True:
-                if (self.position[0] - ANNOUNCE_RANGE + index >= 0):
-                    top = self.position[0] - ANNOUNCE_RANGE + index
-                    break
-                else: index = index + 1
-        if (self.position[1] - ANNOUNCE_RANGE < 0):
-            index = 1
-            while True:
-                if (self.position[1] - ANNOUNCE_RANGE + index >= 0):
-                    left = self.position[1] - ANNOUNCE_RANGE + index
-                    break
-                else: index = index + 1
+#         if (self.position[0] - ANNOUNCE_RANGE < 0):
+#             index = 1
+#             while True:
+#                 if (self.position[0] - ANNOUNCE_RANGE + index >= 0):
+#                     top = self.position[0] - ANNOUNCE_RANGE + index
+#                     break
+#                 else: index = index + 1
+#         if (self.position[1] - ANNOUNCE_RANGE < 0):
+#             index = 1
+#             while True:
+#                 if (self.position[1] - ANNOUNCE_RANGE + index >= 0):
+#                     left = self.position[1] - ANNOUNCE_RANGE + index
+#                     break
+#                 else: index = index + 1
 
-        if (self.position[0] + ANNOUNCE_RANGE > current_map.num_rows - 1):
-            index = 1
-            while True:
-                if (self.position[0] + ANNOUNCE_RANGE - index <= current_map.num_rows - 1):
-                    bottom = self.position[0] + ANNOUNCE_RANGE - index
-                    break
-                else: index = index + 1
+#         if (self.position[0] + ANNOUNCE_RANGE > current_map.num_rows - 1):
+#             index = 1
+#             while True:
+#                 if (self.position[0] + ANNOUNCE_RANGE - index <= current_map.num_rows - 1):
+#                     bottom = self.position[0] + ANNOUNCE_RANGE - index
+#                     break
+#                 else: index = index + 1
 
-        if (self.position[1] + ANNOUNCE_RANGE > current_map.num_cols - 1):
-            index = 1
-            while True:
-                if (self.position[1] + ANNOUNCE_RANGE - index <= current_map.num_rows - 1):
-                    right = self.position[1] + ANNOUNCE_RANGE - index
-                    break
-                else: index = index + 1
+#         if (self.position[1] + ANNOUNCE_RANGE > current_map.num_cols - 1):
+#             index = 1
+#             while True:
+#                 if (self.position[1] + ANNOUNCE_RANGE - index <= current_map.num_rows - 1):
+#                     right = self.position[1] + ANNOUNCE_RANGE - index
+#                     break
+#                 else: index = index + 1
 
 
-        matrix_range = []
-        rows = bottom + 1 - top
-        cols = right + 1 - left
-        for i in range(top, bottom + 1):
-            row = []
-            for j in range(left, right + 1):
-                if (current_map.map_array[i][j] != None):
-                  row.append(current_map.map_array[i][j])
+#         matrix_range = []
+#         rows = bottom + 1 - top
+#         cols = right + 1 - left
+#         for i in range(top, bottom + 1):
+#             row = []
+#             for j in range(left, right + 1):
+#                 if (current_map.map_array[i][j] != None):
+#                   row.append(current_map.map_array[i][j])
             
-            matrix_range.append(row)
+#             matrix_range.append(row)
 
-        return matrix_range, rows, cols, top, left, bottom, right
+#         return matrix_range, rows, cols, top, left, bottom, right
     
-    def announce(self, seekers_moves):
-        if (seekers_moves == 5):
-            rows = 0
-            cols = 0
-            matrix_range, rows, cols, top, left, bottom, right = self.unit_range()
-            while True:
-                rand_row_index = random.randint(0, rows - 1)
-                rand_col_index = random.randint(0, cols - 1)
-                if (matrix_range[rand_row_index][rand_col_index] == 0):
-                    break
+#     def announce(self, seekers_moves):
+#         if (seekers_moves == 5):
+#             rows = 0
+#             cols = 0
+#             matrix_range, rows, cols, top, left, bottom, right = self.unit_range()
+#             while True:
+#                 rand_row_index = random.randint(0, rows - 1)
+#                 rand_col_index = random.randint(0, cols - 1)
+#                 if (matrix_range[rand_row_index][rand_col_index] == 0):
+#                     break
                 
-            matrix_range[rand_row_index][rand_col_index] = 5
-            for row in matrix_range:
-                print(row)
-            print()
+#             matrix_range[rand_row_index][rand_col_index] = 5
+#             for row in matrix_range:
+#                 print(row)
+#             print()
 
 
-        current_map.map_array[rand_row_index + top][rand_col_index + left] = 5     
-        announce_coordinate = (rand_row_index + top, rand_col_index + left)
+#         current_map.map_array[rand_row_index + top][rand_col_index + left] = 5     
+#         announce_coordinate = (rand_row_index + top, rand_col_index + left)
         
-        return announce_coordinate
+#         return announce_coordinate
 
 
-#ALGORITHM GOES HERE
+# #ALGORITHM GOES HERE
 
 def trackPath(finalState): #Function to track the path from initial to the goal
     path = []
@@ -501,8 +498,9 @@ def trackPath(finalState): #Function to track the path from initial to the goal
     return path
 
 def checkGoal(currentState): #Check if the current state is the goal state
-    if currentState.board == currentState.goalBoard:
+    if currentState.currentPosition == currentState.goalPosition:
         return True
+    return False
 
 def isHiderInVision(Seeker, Hider, Map):
     min_x = max(0, Seeker.position[0] - 3)
@@ -534,21 +532,21 @@ def calculateHeuristic(current, goal):
     return abs(current[0] - goal[0]) + abs(current[1] - goal[1])
 
 def generateNextRandomGoal(Seeker, Map):
-    x = random.randint(0, Map.num_rows - 1)
-    y = random.randint(0, Map.num_cols - 1)
+    (x, y) = (random.randint(0, Map.num_rows - 1), random.randint(0, Map.num_cols - 1))
     return (x, y)
 
 class SearchState:
-    def __init__(self, current_position, goal_position, parent, heuristic, map):
+    def __init__(self, current_position, goal_position, parent, heuristic, map_array, moveDirection):
         self.currentPosition = current_position 
         self.goalPosition = goal_position
         self.parent = parent
         self.heuristic = heuristic
-        self.map = map
+        self.map_array = map_array
+        self.direction = moveDirection
         if parent:
             self.cost = parent.cost + 1 
         else:
-            self.cost = 0 
+            self.cost = 0
 
     #Priority: Node with lowest "cost + heuristic" in heap will be pop first
     def __lt__(self, other):
@@ -559,58 +557,68 @@ class SearchState:
     def moveUp(self):
         if self.currentPosition[0] > 0:
             new_position = (self.currentPosition[0] - 1, self.currentPosition[1])
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition))
+            self.direction.append("UP")
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
         else:
             return None
     
     def moveDown(self):
-        if self.currentPosition[0] < map.num_rows - 1:
+        if self.currentPosition[0] < len(self.map_array) - 1:
             new_position = (self.currentPosition[0] + 1, self.currentPosition[1])
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition))
+            self.direction.append("DOWN")
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
         else:
             return None
 
     def moveLeft(self):
         if self.currentPosition[1] > 0:
             new_position = (self.currentPosition[0], self.currentPosition[1] - 1)
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition))
+            self.direction.append("LEFT")
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
+        else:
+            return None
     
     def moveRight(self):
-        if self.currentPosition[1] < map.num_cols - 1:
+        if self.currentPosition[0] < len(self.map_array[0]) - 1:
             new_position = (self.currentPosition[0], self.currentPosition[1] + 1)
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition))
+            self.direction.append("RIGHT")
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
         else:
             return None
     
     def moveUpRight(self):
-        if self.currentPosition[0] > 0 and self.currentPosition[1] < map.num_cols - 1:
+        if self.currentPosition[0] > 0 and self.currentPosition[1] < len(self.map_array[0]) - 1:
             new_position = (self.currentPosition[0] - 1, self.currentPosition[1] + 1)
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition))
+            self.direction.append("UP_RIGHT")
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
         else:
             return None
     
     def moveUpLeft(self):
         if self.currentPosition[0] > 0 and self.currentPosition[1] > 0:
             new_position = (self.currentPosition[0] - 1, self.currentPosition[1] - 1)
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition))
+            self.direction.append("UP_LEFT")
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
         else:
             return None
         
     def moveDownRight(self):
-        if self.currentPosition[0] < map.num_rows - 1 and self.currentPosition[1] < map.num_cols - 1:
+        if self.currentPosition[0] < len(self.map_array) - 1 and self.currentPosition[1] < len(self.map_array[0]) - 1:
             new_position = (self.currentPosition[0] + 1, self.currentPosition[1] + 1)
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition))
+            self.direction.append("DOWN_RIGHT")
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
         else:
             return None
     
     def moveDownLeft(self):
-        if self.currentPosition[0] < map.num_rows - 1 and self.currentPosition[1] > 0:
+        if self.currentPosition[0] < len(self.map_array) - 1 and self.currentPosition[1] > 0:
             new_position = (self.currentPosition[0] + 1, self.currentPosition[1] - 1)
-            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition))
+            self.direction.append("DOWN_LEFT")
+            return SearchState(new_position, self.goalPosition, self, calculateHeuristic(new_position, self.goalPosition), self.map_array, self.direction)
         else:
             return None
 
-    def get_successors(self, searchType, N):
+    def get_successors(self):
         successors = []
         # Generate the successors of the current state in 4 direction (UP, DOWN, LEFT, RIGHT)
         successors.append(self.moveUp())
@@ -631,7 +639,9 @@ def a_star(Seeker, goalPosition):
     expandedList = set()
     frontier = []
     #Generate the initial state and allocate the heuristic value and push it to the frontier
-    initialState = SearchState(Seeker.position, goalPosition, None, calculateHeuristic(Seeker.position, goalPosition), Seeker.map)
+    # print(type(Seeker.position))
+    moveDirection = []
+    initialState = SearchState(Seeker.position, goalPosition, None, calculateHeuristic(Seeker.position, goalPosition), Seeker.map_array, moveDirection)
 
     heapq.heappush(frontier, initialState)
     while frontier:
@@ -645,9 +655,9 @@ def a_star(Seeker, goalPosition):
                 if successor not in expandedList: #Check whether the successor is in the expanded list previously, if no -> push to frontier
                     heapq.heappush(frontier, successor) #Push the successor to the frontier
 
-def traceHider(Seeker, Hider):
-    finalState = a_star(Seeker, Hider.position)
-    path = trackPath(finalState)
+# def traceHider(Seeker, Hider):
+#     finalState = a_star(Seeker, Hider.position)
+#     path = trackPath(finalState)
 
 #MAIN
 print()
@@ -657,6 +667,23 @@ print("----------------------------------------------------------")
 current_map2 = Map()
 current_map2.read_txt_file("test_map2.txt")
 printMap(current_map2.map_array)
+print()
+print()
+print()
+print("----------------------------------------------------------")
+bound = (current_map2.num_rows, current_map2.num_cols)
+currentSeeker = Seeker(current_map2.seeker_position[0], 3, bound, current_map2)
+currentSeeker.printSeekerMap()
+
+# randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
+hiderPos = (6, 19)
+print("Random Position: ", hiderPos)
+finalState = a_star(currentSeeker, hiderPos)
+path = trackPath(finalState)
+for i, state in enumerate(path):
+    print("Step", i + 1, ":", state.currentPosition)
+        
+
     # Seeker = Seeker(current_map.seeker_position[0], 3, (current_map.num_rows, current_map.num_cols), current_map.map_array)
 
     # finalState = a_star(Seeker, generateNextRandomGoal(Seeker, Map))
