@@ -755,39 +755,44 @@ if level == "1":
     print("----------------------------------------------------------")
     bound = (current_map2.num_rows, current_map2.num_cols)
     currentSeeker = Seeker(current_map2.seeker_position[0], 3, bound, current_map2)
-
-    randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
-    # randomPosition = (4, 17)
-    print("Random Position Seeker will explore: ", randomPosition)
-    print()
-    print("----------------------------------------------------------")
-    finalState = a_star(currentSeeker, randomPosition)
-    path = trackPath(finalState)
-    print("Path to the random position: ")
-    for i, state in enumerate(path):
-        print("Step", i + 1, ": explore", state.currentPosition)
-    print()
-    for i in range(len(path)):
-        currentSeeker.updateSeeker(path[i].currentPosition)
+    while (currentSeeker.hiderNum > 0):
+        randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
+        while (current_map2.map_array[randomPosition[0]][randomPosition[1]] != 0):
+            randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
+        # randomPosition = (4, 17)
+        print("Random Position Seeker will explore: ", randomPosition)
         print()
-        currentSeeker.printSeekerMap()
-        if (isHiderInVision(currentSeeker, current_map2)):
-            finalState = a_star(currentSeeker, current_map2.hider_position[0])
-            print("Update Seeker Map")
-            currentSeeker.updateHiderPosition(current_map2.hider_position[0])
-            path = trackPath(finalState)
-            print("Path to the hider: ")
-            for i, state in enumerate(path):
-                print("Step", i + 1, ": Go to ", state.currentPosition)
-            print("----------------------------------------------------------")
-            for i in range(len(path)):
-                currentSeeker.updateSeeker(path[i].currentPosition)
-                print()
+        print("----------------------------------------------------------")
+        finalState = a_star(currentSeeker, randomPosition)
+        path = trackPath(finalState)
+        print("Path to the random position: ")
+        for i, state in enumerate(path):
+            print("Step", i + 1, ": explore", state.currentPosition)
+        # print()
+        for i in range(len(path)):
+            currentSeeker.updateSeeker(path[i].currentPosition)
+            # print()
+            # currentSeeker.printSeekerMap()
+            if (isHiderInVision(currentSeeker, current_map2)):
+                finalState = a_star(currentSeeker, current_map2.hider_position[0])
+                print("Update Seeker Map")
+                currentSeeker.updateHiderPosition(current_map2.hider_position[0])
+                path = trackPath(finalState)
+                print("Path to the hider: ")
+                for i, state in enumerate(path):
+                    print("Step", i + 1, ": Go to ", state.currentPosition)
+                print("----------------------------------------------------------")
+                for i in range(len(path)):
+                    currentSeeker.updateSeeker(path[i].currentPosition)
+                    # print()
+                    # currentSeeker.printSeekerMap()
+                # if (isHiderCaught(currentSeeker, current_map2.hider_position[0])):
+                currentSeeker.hiderNum -= 1
                 currentSeeker.printSeekerMap()
-            # if (isHiderCaught(currentSeeker, current_map2.hider_position[0])):
-            print("Hider caught")
-            break
-    print("End Game")
+                print("Hider caught")       
+                print("End Game")
+                break
+        currentSeeker.printSeekerMap()
 
 if level == "2":
     print()
