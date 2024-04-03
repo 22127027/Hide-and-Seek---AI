@@ -442,6 +442,7 @@ class Seeker(Agent):
         self.map_array[self.position[0]][self.position[1]] = 0
         self.map_array[position[0]][position[1]] = 3
         self.position = position
+        
     def updateHiderPosition(self, position):
         self.map_array[position[0]][position[1]] = 2
     
@@ -558,11 +559,6 @@ def checkGoal(currentState): #Check if the current state is the goal state
     return False
 
 def isHiderInVision(Seeker, Map):
-    # min_x = max(0, Seeker.position[0] - 3)
-    # max_x = min(Map.num_rows - 1, Seeker.position[0] + 3)
-    # min_y = max(0, Seeker.position[1] - 3)
-    # max_y = min(Map.num_cols - 1, Seeker.position[1] + 3)
-    
     currentSeeker.clear_current_vision()
     currentSeeker.find_agent_valid_vision()
     for i in range(len(Seeker.valid_vision_left)):
@@ -598,28 +594,6 @@ def isHiderInVision(Seeker, Map):
             print("Hider found at position: ", Seeker.valid_vision_down_right[i])
             return True
     return False
-
-    # Iterate through the cells within the Seeker's vision range
-    # for x in range(min_x, max_x + 1):
-    #     for y in range(min_y, max_y + 1):
-    #         if Map.map_array[x][y] == 2 and :  # Check if Hider is in vision
-    #             print("Hider found at position: ", x, y)
-    #             # Seeker.updateGoal((x, y))
-    #             return True
-    return False
-
-# def isHiderAllCaught():
-#     if Seeker.position == Hider.position:
-#         return True
-#     return False
-
-# def isAnnouncementHeard(Seeker):
-#     for i in range(len(Seeker.vision)):
-#         for j in range(len(Seeker.vision[i])):
-#             if Seeker.vision[i][j] == 5:
-#                 print("Announcement heard at position: ", i, j)
-#                 return True
-#     return False
 
 def calculateHeuristic(current, goal):
     return abs(current[0] - goal[0]) + abs(current[1] - goal[1])
@@ -798,9 +772,7 @@ if level == "1":
                 print("----------------------------------------------------------")
                 for i in range(len(path)):
                     currentSeeker.updateSeeker(path[i].currentPosition)
-                    # print()
-                    # currentSeeker.printSeekerMap()
-                # if (isHiderCaught(currentSeeker, current_map2.hider_position[0])):
+                #Sau khi bat duoc hider, giam so luong no xuong 1, neu khong con hider thi end game
                 currentSeeker.hiderNum -= 1
                 currentSeeker.printSeekerMap()
                 print("Hider caught")       
