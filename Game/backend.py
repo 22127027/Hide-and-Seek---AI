@@ -308,26 +308,16 @@ class Agent:
         self.score = score
         self.bound = bound
         self.map = map
-
+        
         self.directions = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1 , 1), (-1, -1)] # go right, left, down, up, down_right, down_left, up_right, up_left 
         self.directions_word = ["right", "left", "down", "up", "down_right", "down_left", "up_right", "up_left"]
         self.current_direction = None
 
-        self.valid_vision_left = []
-        self.valid_vision_right = []
-        self.valid_vision_up = []
-        self.valid_vision_down = []
+        self.valid_vision = []
 
-        self.valid_vision_up_left = []
         self.invalid_vision_up_left = []
-
-        self.valid_vision_up_right = []
         self.invalid_vision_up_right = []
-
-        self.valid_vision_down_left = []
         self.invalid_vision_down_left = []
-
-        self.valid_vision_down_right = []
         self.invalid_vision_down_right = []
 
         self.valid_movement = []
@@ -346,10 +336,10 @@ class Agent:
         
     def check_diagonal_down(self, row, col, direction):
         for _ in range(1, self.vision_radius + 1):
-            if (direction == 'up_left' and abs(row - col) > abs (self.position[0] - self.position[1])) or \
-               (direction == 'up_right' and abs(row - col) < abs (self.position[0] - self.position[1])) or \
-               (direction == 'down_left' and abs(row + col) > abs (self.position[0] + self.position[1])) or \
-               (direction == 'down_right' and abs(row + col) < abs (self.position[0] + self.position[1])):
+            if (direction == 'up_left' and abs(row - col) < abs(self.position[0] - self.position[1])) or \
+               (direction == 'up_right' and abs(row - col) > abs(self.position[0] - self.position[1])) or \
+               (direction == 'down_left' and abs(row + col) > abs(self.position[0] + self.position[1])) or \
+               (direction == 'down_right' and abs(row + col) < abs(self.position[0] + self.position[1])):
                 return True
         return False
     
@@ -363,28 +353,28 @@ class Agent:
         for tpl in invalid_direction:
             tpl_row, tpl_col = tpl[0], tpl[1]
             if direction == 'up_left':
-                if not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (col == tpl_col - 1 and (row == tpl_row or row == tpl_row - 1)) or \
-                not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (row == tpl_row - 1 and (col == tpl_col or col == tpl_col - 1)) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction):
+                if (not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (col == tpl_col - 1 and (row == tpl_row or row == tpl_row - 1))) or \
+                   (not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (row == tpl_row - 1 and (col == tpl_col or col == tpl_col - 1))) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col)) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction)):
                     return False
             elif direction == 'up_right':
-                if not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (col == tpl_col + 1 and (row == tpl_row or row == tpl_row - 1)) or \
-                not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (row == tpl_row - 1 and (col == tpl_col or col == tpl_col + 1)) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction):
+                if (not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (col == tpl_col + 1 and (row == tpl_row or row == tpl_row - 1))) or \
+                   (not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (row == tpl_row - 1 and (col == tpl_col or col == tpl_col + 1))) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col)) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction)):
                     return False
             elif direction == 'down_left':
-                if not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (col == tpl_col - 1 and (row == tpl_row or row == tpl_row + 1)) or \
-                not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (row == tpl_row + 1 and (col == tpl_col or col == tpl_col - 1)) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction):
+                if (not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (col == tpl_col - 1 and (row == tpl_row or row == tpl_row + 1))) or \
+                   (not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (row == tpl_row + 1 and (col == tpl_col or col == tpl_col - 1))) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col)) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction)):
                     return False
             elif direction == 'down_right':
-                if not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (col == tpl_col + 1 and (row == tpl_row or row == tpl_row + 1)) or \
-                not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (row == tpl_row + 1 and (col == tpl_col or col == tpl_col + 1)) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col):
+                if (not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (col == tpl_col + 1 and (row == tpl_row or row == tpl_row + 1))) or \
+                   (not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (row == tpl_row + 1 and (col == tpl_col or col == tpl_col + 1))) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col)) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col)):
                     return False
                     
         return True
@@ -393,68 +383,57 @@ class Agent:
         for row in range(1, self.vision_radius + 1):
             for col in range(1, self.vision_radius + 1):
                 if direction == 'up_left':
-                    if self.position[0] - row >= 0 and self.position[1] - col >= 0 and self.check_invalid_vision(self.position[0] - row, self.position[1] - col, direction) and self.map[self.position[0] - row][self.position[1] - col] == 0:
-                        self.valid_vision_up_left.append((self.position[0] - row, self.position[1] - col))
+                    if self.position[0] - row >= 0 and self.position[1] - col >= 0 and self.check_invalid_vision(self.position[0] - row, self.position[1] - col, direction) and (self.map[self.position[0] - row][self.position[1] - col] != 1 and self.map[self.position[0] - row][self.position[1] - col] != 4):
+                        self.valid_vision.append((self.position[0] - row, self.position[1] - col))
                     elif self.position[0] - row >= 0 and self.position[1] - col >= 0:
                         self.invalid_vision_up_left.append((self.position[0] - row, self.position[1] - col))
 
                 elif direction == 'up_right':
-                    if self.position[0] - row >= 0 and self.position[1] + col < self.bound[1] and self.check_invalid_vision(self.position[0] - row, self.position[1] + col, direction) and self.map[self.position[0] - row][self.position[1] + col] == 0:
-                        self.valid_vision_up_right.append((self.position[0] - row, self.position[1] + col))
+                    if self.position[0] - row >= 0 and self.position[1] + col < self.bound[1] and self.check_invalid_vision(self.position[0] - row, self.position[1] + col, direction) and (self.map[self.position[0] - row][self.position[1] + col] != 1 and self.map[self.position[0] - row][self.position[1] + col] != 4):
+                        self.valid_vision.append((self.position[0] - row, self.position[1] + col))
                     elif self.position[0] - row >= 0 and self.position[1] + col < self.bound[1]:
                         self.invalid_vision_up_right.append((self.position[0] - row, self.position[1] + col))
 
                 elif direction == 'down_left':
-                    if self.position[0] + row < self.bound[0] and self.position[1] - col >= 0 and self.check_invalid_vision(self.position[0] + row, self.position[1] - col, direction) and self.map[self.position[0] + row][self.position[1] - col] == 0:
-                        self.valid_vision_down_left.append((self.position[0] + row, self.position[1] - col))
+                    if self.position[0] + row < self.bound[0] and self.position[1] - col >= 0 and self.check_invalid_vision(self.position[0] + row, self.position[1] - col, direction) and (self.map[self.position[0] + row][self.position[1] - col] != 1 and self.map[self.position[0] + row][self.position[1] - col] != 4):
+                        self.valid_vision.append((self.position[0] + row, self.position[1] - col))
                     elif self.position[0] + row < self.bound[0] and self.position[1] - col >= 0:
                         self.invalid_vision_down_left.append((self.position[0] + row, self.position[1] - col))
 
                 elif direction == 'down_right':
-                    if self.position[0] + row < self.bound[0] and self.position[1] + col < self.bound[1] and self.check_invalid_vision(self.position[0] + row, self.position[1] + col, direction) and self.map[self.position[0] + row][self.position[1] + col] == 0:
-                        self.valid_vision_down_right.append((self.position[0] + row, self.position[1] + col))
+                    if self.position[0] + row < self.bound[0] and self.position[1] + col < self.bound[1] and self.check_invalid_vision(self.position[0] + row, self.position[1] + col, direction) and (self.map[self.position[0] + row][self.position[1] + col] != 1 and self.map[self.position[0] + row][self.position[1] + col] != 4):
+                        self.valid_vision.append((self.position[0] + row, self.position[1] + col))
                     elif self.position[0] + row < self.bound[0] and self.position[1] + col < self.bound[1]:
                         self.invalid_vision_down_right.append((self.position[0] + row, self.position[1] + col))
 
     def check_vision_in_direction(self, direction):
         for i in range(1, self.vision_radius + 1):
             if direction == 'left':
-                if self.position[1] - i >= 0 and self.map[self.position[0]][self.position[1] - i] == 0:
-                    self.valid_vision_left.append((self.position[0], self.position[1] - i))
+                if self.position[1] - i >= 0 and self.map[self.position[0]][self.position[1] - i] != 1:
+                    self.valid_vision.append((self.position[0], self.position[1] - i))
                 else:
                     break
             elif direction == 'right':
-                if self.position[1] + i < self.bound[1] and self.map[self.position[0]][self.position[1] + i] == 0:
-                    self.valid_vision_right.append((self.position[0], self.position[1] + i))
+                if self.position[1] + i < self.bound[1] and self.map[self.position[0]][self.position[1] + i] != 1:
+                    self.valid_vision.append((self.position[0], self.position[1] + i))
                 else:
                     break
             elif direction == 'up':
-                if self.position[0] - i >= 0 and self.map[self.position[0] - i][self.position[1]] == 0:
-                    self.valid_vision_up.append((self.position[0] - i, self.position[1]))
+                if self.position[0] - i >= 0 and self.map[self.position[0] - i][self.position[1]] != 1:
+                    self.valid_vision.append((self.position[0] - i, self.position[1]))
                 else:
                     break
             elif direction == 'down':
-                if self.position[0] + i < self.bound[0] and self.map[self.position[0] + i][self.position[1]] == 0:
-                    self.valid_vision_down.append((self.position[0] + i, self.position[1]))
+                if self.position[0] + i < self.bound[0] and self.map[self.position[0] + i][self.position[1]] != 1:
+                    self.valid_vision.append((self.position[0] + i, self.position[1]))
                 else:
                     break
     
     def clear_current_vision(self):
-        self.valid_vision_left.clear()
-        self.valid_vision_right.clear()
-        self.valid_vision_up.clear()
-        self.valid_vision_down.clear()
-
-        self.valid_vision_up_left.clear()
+        self.valid_vision.clear()
         self.invalid_vision_up_left.clear()
-
-        self.valid_vision_up_right.clear()
         self.invalid_vision_up_right.clear()
-
-        self.valid_vision_down_left.clear()
         self.invalid_vision_down_left.clear()
-
-        self.valid_vision_down_right.clear()
         self.invalid_vision_down_right.clear()
 
     def agent_valid_vision(self):
@@ -624,6 +603,7 @@ class Hider(Agent):
         
 # Usage
 filename = "D:/SourceCode/IoAI/Project1/Assets/5maps/test_map.txt"
+# filename = "D:/AI_PROJECT/Hide-and-Seek---AI/Game/Assets/5maps/test_map.txt"
 current_map = Map()
 current_map.read_txt_file(filename)
 current_map.createMap(1)
