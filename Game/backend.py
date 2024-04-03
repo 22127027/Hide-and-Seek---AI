@@ -374,7 +374,7 @@ class Agent:
                 if (not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (col == tpl_col + 1 and (row == tpl_row or row == tpl_row + 1))) or \
                    (not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (row == tpl_row + 1 and (col == tpl_col or col == tpl_col + 1))) or \
                    (self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col)) or \
-                   (self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col)):
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction)):
                     return False
                     
         return True
@@ -409,22 +409,22 @@ class Agent:
     def check_vision_in_direction(self, direction):
         for i in range(1, self.vision_radius + 1):
             if direction == 'left':
-                if self.position[1] - i >= 0 and self.map[self.position[0]][self.position[1] - i] != 1:
+                if self.position[1] - i >= 0 and self.map[self.position[0]][self.position[1] - i] != 1 and self.map[self.position[0]][self.position[1] - i] != 4:
                     self.valid_vision.append((self.position[0], self.position[1] - i))
                 else:
                     break
             elif direction == 'right':
-                if self.position[1] + i < self.bound[1] and self.map[self.position[0]][self.position[1] + i] != 1:
+                if self.position[1] + i < self.bound[1] and self.map[self.position[0]][self.position[1] + i] != 1 and self.map[self.position[0]][self.position[1] + i] != 4:
                     self.valid_vision.append((self.position[0], self.position[1] + i))
                 else:
                     break
             elif direction == 'up':
-                if self.position[0] - i >= 0 and self.map[self.position[0] - i][self.position[1]] != 1:
+                if self.position[0] - i >= 0 and self.map[self.position[0] - i][self.position[1]] != 1 and self.map[self.position[0] - i][self.position[1]] != 4:
                     self.valid_vision.append((self.position[0] - i, self.position[1]))
                 else:
                     break
             elif direction == 'down':
-                if self.position[0] + i < self.bound[0] and self.map[self.position[0] + i][self.position[1]] != 1:
+                if self.position[0] + i < self.bound[0] and self.map[self.position[0] + i][self.position[1]] != 1 and self.map[self.position[0] + i][self.position[1]] != 4:
                     self.valid_vision.append((self.position[0] + i, self.position[1]))
                 else:
                     break
