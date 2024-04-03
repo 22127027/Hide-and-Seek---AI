@@ -250,34 +250,33 @@ class Agent:
                 if not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (col == tpl_col + 1 and (row == tpl_row or row == tpl_row + 1)) or \
                 not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (row == tpl_row + 1 and (col == tpl_col or col == tpl_col + 1)) or \
                 self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col):
+                self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction):
                     return False
-                    
         return True
 
     def check_vision_in_diagonal_direction(self, direction):
         for row in range(1, self.vision_radius + 1):
             for col in range(1, self.vision_radius + 1):
                 if direction == 'up_left':
-                    if self.position[0] - row >= 0 and self.position[1] - col >= 0 and self.check_invalid_vision(self.position[0] - row, self.position[1] - col, direction) and self.map[self.position[0] - row][self.position[1] - col] == 0:
+                    if self.position[0] - row >= 0 and self.position[1] - col >= 0 and self.check_invalid_vision(self.position[0] - row, self.position[1] - col, direction) and self.map_array[self.position[0] - row][self.position[1] - col] == 0:
                         self.valid_vision_up_left.append((self.position[0] - row, self.position[1] - col))
                     elif self.position[0] - row >= 0 and self.position[1] - col >= 0:
                         self.invalid_vision_up_left.append((self.position[0] - row, self.position[1] - col))
 
                 elif direction == 'up_right':
-                    if self.position[0] - row >= 0 and self.position[1] + col < self.bound[1] and self.check_invalid_vision(self.position[0] - row, self.position[1] + col, direction) and self.map[self.position[0] - row][self.position[1] + col] == 0:
+                    if self.position[0] - row >= 0 and self.position[1] + col < self.bound[1] and self.check_invalid_vision(self.position[0] - row, self.position[1] + col, direction) and self.map_array[self.position[0] - row][self.position[1] + col] == 0:
                         self.valid_vision_up_right.append((self.position[0] - row, self.position[1] + col))
                     elif self.position[0] - row >= 0 and self.position[1] + col < self.bound[1]:
                         self.invalid_vision_up_right.append((self.position[0] - row, self.position[1] + col))
 
                 elif direction == 'down_left':
-                    if self.position[0] + row < self.bound[0] and self.position[1] - col >= 0 and self.check_invalid_vision(self.position[0] + row, self.position[1] - col, direction) and self.map[self.position[0] + row][self.position[1] - col] == 0:
+                    if self.position[0] + row < self.bound[0] and self.position[1] - col >= 0 and self.check_invalid_vision(self.position[0] + row, self.position[1] - col, direction) and self.map_array[self.position[0] + row][self.position[1] - col] == 0:
                         self.valid_vision_down_left.append((self.position[0] + row, self.position[1] - col))
                     elif self.position[0] + row < self.bound[0] and self.position[1] - col >= 0:
                         self.invalid_vision_down_left.append((self.position[0] + row, self.position[1] - col))
 
                 elif direction == 'down_right':
-                    if self.position[0] + row < self.bound[0] and self.position[1] + col < self.bound[1] and self.check_invalid_vision(self.position[0] + row, self.position[1] + col, direction) and self.map[self.position[0] + row][self.position[1] + col] == 0:
+                    if self.position[0] + row < self.bound[0] and self.position[1] + col < self.bound[1] and self.check_invalid_vision(self.position[0] + row, self.position[1] + col, direction) and self.map_array[self.position[0] + row][self.position[1] + col] == 0:
                         self.valid_vision_down_right.append((self.position[0] + row, self.position[1] + col))
                     elif self.position[0] + row < self.bound[0] and self.position[1] + col < self.bound[1]:
                         self.invalid_vision_down_right.append((self.position[0] + row, self.position[1] + col))
@@ -285,27 +284,45 @@ class Agent:
     def check_vision_in_direction(self, direction):
         for i in range(1, self.vision_radius + 1):
             if direction == 'left':
-                if self.position[1] - i >= 0 and self.map[self.position[0]][self.position[1] - i] == 0:
+                if self.position[1] - i >= 0 and self.map_array[self.position[0]][self.position[1] - i] == 0:
                     self.valid_vision_left.append((self.position[0], self.position[1] - i))
                 else:
                     break
             elif direction == 'right':
-                if self.position[1] + i < self.bound[1] and self.map[self.position[0]][self.position[1] + i] == 0:
+                if self.position[1] + i < self.bound[1] and self.map_array[self.position[0]][self.position[1] + i] == 0:
                     self.valid_vision_right.append((self.position[0], self.position[1] + i))
                 else:
                     break
             elif direction == 'up':
-                if self.position[0] - i >= 0 and self.map[self.position[0] - i][self.position[1]] == 0:
+                if self.position[0] - i >= 0 and self.map_array[self.position[0] - i][self.position[1]] == 0:
                     self.valid_vision_up.append((self.position[0] - i, self.position[1]))
                 else:
                     break
             elif direction == 'down':
-                if self.position[0] + i < self.bound[0] and self.map[self.position[0] + i][self.position[1]] == 0:
+                if self.position[0] + i < self.bound[0] and self.map_array[self.position[0] + i][self.position[1]] == 0:
                     self.valid_vision_down.append((self.position[0] + i, self.position[1]))
                 else:
                     break
 
-    def agent_valid_vision(self):
+    def clear_current_vision(self):
+        self.valid_vision_left.clear()
+        self.valid_vision_right.clear()
+        self.valid_vision_up.clear()
+        self.valid_vision_down.clear()
+
+        self.valid_vision_up_left.clear()
+        self.invalid_vision_up_left.clear()
+
+        self.valid_vision_up_right.clear()
+        self.invalid_vision_up_right.clear()
+
+        self.valid_vision_down_left.clear()
+        self.invalid_vision_down_left.clear()
+
+        self.valid_vision_down_right.clear()
+        self.invalid_vision_down_right.clear()
+
+    def find_agent_valid_vision(self):
         for i in range (0, 4):
             self.check_vision_in_direction(self.directions_word[i])
         
@@ -347,8 +364,7 @@ class Agent:
     def agent_go_up_left(self):
         print("Up Left")
         self.move(7)
-    
-
+        
     # def load_obstacles(self):
     #     for obstacle_pos in current_map.obstacles_position:
     #         pos = [int(x) for x in obstacle_pos.split()]
@@ -429,6 +445,24 @@ class Seeker(Agent):
     def updateHiderPosition(self, position):
         self.map_array[position[0]][position[1]] = 2
     
+    def print_vision(self):
+        print (len(self.valid_vision_right))
+        for i in range(len(self.valid_vision_left)):
+            print("Vision left: ", self.valid_vision_left[i])
+        for i in range(len(self.valid_vision_right)):
+            print("Vision right: ", self.valid_vision_right[i])
+        for i in range(len(self.valid_vision_up)):
+            print("Vision up: ", self.valid_vision_up[i])
+        for i in range(len(self.valid_vision_down)):
+            print("Vision down: ", self.valid_vision_down[i])
+        for i in range(len(self.valid_vision_up_left)):
+            print("Vision up left: ", self.valid_vision_up_left[i])
+        for i in range(len(self.valid_vision_up_right)):
+            print("Vision up right: ", self.valid_vision_up_right[i])
+        for i in range(len(self.valid_vision_down_left)):
+            print("Vision down left: ", self.valid_vision_down_left[i])
+        for i in range(len(self.valid_vision_down_right)):
+            print("Vision down right: ", self.valid_vision_down_right[i])
 
 # class Hider(Agent):
 #     def __init__(self, position, vision_radius, bound, map, id=0, score=0):
@@ -524,18 +558,54 @@ def checkGoal(currentState): #Check if the current state is the goal state
     return False
 
 def isHiderInVision(Seeker, Map):
-    min_x = max(0, Seeker.position[0] - 3)
-    max_x = min(Map.num_rows - 1, Seeker.position[0] + 3)
-    min_y = max(0, Seeker.position[1] - 3)
-    max_y = min(Map.num_cols - 1, Seeker.position[1] + 3)
+    # min_x = max(0, Seeker.position[0] - 3)
+    # max_x = min(Map.num_rows - 1, Seeker.position[0] + 3)
+    # min_y = max(0, Seeker.position[1] - 3)
+    # max_y = min(Map.num_cols - 1, Seeker.position[1] + 3)
     
+    currentSeeker.clear_current_vision()
+    currentSeeker.find_agent_valid_vision()
+    for i in range(len(Seeker.valid_vision_left)):
+        if Seeker.valid_vision_left[i] in Map.hider_position:
+            print("Hider found at position: ", Seeker.valid_vision_left[i])
+            return True
+    for i in range(len(Seeker.valid_vision_right)):
+        if Seeker.valid_vision_right[i] in Map.hider_position:
+            print("Hider found at position: ", Seeker.valid_vision_right[i])
+            return True
+    for i in range(len(Seeker.valid_vision_up)):
+        if Seeker.valid_vision_up[i] in Map.hider_position:
+            print("Hider found at position: ", Seeker.valid_vision_up[i])
+            return True
+    for i in range(len(Seeker.valid_vision_down)):
+        if Seeker.valid_vision_down[i] in Map.hider_position:
+            print("Hider found at position: ", Seeker.valid_vision_down[i])
+            return True
+    for i in range(len(Seeker.valid_vision_up_left)):
+        if Seeker.valid_vision_up_left[i] in Map.hider_position:
+            print("Hider found at position: ", Seeker.valid_vision_up_left[i])
+            return True
+    for i in range(len(Seeker.valid_vision_up_right)):
+        if Seeker.valid_vision_up_right[i] in Map.hider_position:
+            print("Hider found at position: ", Seeker.valid_vision_up_right[i])
+            return True
+    for i in range(len(Seeker.valid_vision_down_left)):
+        if Seeker.valid_vision_down_left[i] in Map.hider_position:
+            print("Hider found at position: ", Seeker.valid_vision_down_left[i])
+            return True
+    for i in range(len(Seeker.valid_vision_down_right)):
+        if Seeker.valid_vision_down_right[i] in Map.hider_position:
+            print("Hider found at position: ", Seeker.valid_vision_down_right[i])
+            return True
+    return False
+
     # Iterate through the cells within the Seeker's vision range
-    for x in range(min_x, max_x + 1):
-        for y in range(min_y, max_y + 1):
-            if Map.map_array[x][y] == 2:  # Check if Hider is in vision
-                print("Hider found at position: ", x, y)
-                # Seeker.updateGoal((x, y))
-                return True
+    # for x in range(min_x, max_x + 1):
+    #     for y in range(min_y, max_y + 1):
+    #         if Map.map_array[x][y] == 2 and :  # Check if Hider is in vision
+    #             print("Hider found at position: ", x, y)
+    #             # Seeker.updateGoal((x, y))
+    #             return True
     return False
 
 # def isHiderAllCaught():
@@ -686,8 +756,8 @@ if level == "1":
     bound = (current_map2.num_rows, current_map2.num_cols)
     currentSeeker = Seeker(current_map2.seeker_position[0], 3, bound, current_map2)
 
-    # randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
-    randomPosition = (6, 19)
+    randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
+    # randomPosition = (4, 17)
     print("Random Position Seeker will explore: ", randomPosition)
     print()
     print("----------------------------------------------------------")
@@ -699,7 +769,6 @@ if level == "1":
     print()
     for i in range(len(path)):
         currentSeeker.updateSeeker(path[i].currentPosition)
-        
         print()
         currentSeeker.printSeekerMap()
         if (isHiderInVision(currentSeeker, current_map2)):

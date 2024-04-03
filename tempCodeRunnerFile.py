@@ -1,2 +1,1 @@
-
-    print("Path to the random position: ")
+currentSeeker.printSeekerMap()
