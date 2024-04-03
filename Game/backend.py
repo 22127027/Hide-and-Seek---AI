@@ -409,22 +409,22 @@ class Agent:
     def check_vision_in_direction(self, direction):
         for i in range(1, self.vision_radius + 1):
             if direction == 'left':
-                if self.position[1] - i >= 0 and self.map[self.position[0]][self.position[1] - i] != 1:
+                if self.position[1] - i >= 0 and self.map[self.position[0]][self.position[1] - i] != 1 and self.map[self.position[0]][self.position[1] - i] != 4:
                     self.valid_vision.append((self.position[0], self.position[1] - i))
                 else:
                     break
             elif direction == 'right':
-                if self.position[1] + i < self.bound[1] and self.map[self.position[0]][self.position[1] + i] != 1:
+                if self.position[1] + i < self.bound[1] and self.map[self.position[0]][self.position[1] + i] != 1 and self.map[self.position[0]][self.position[1] - i] != 4:
                     self.valid_vision.append((self.position[0], self.position[1] + i))
                 else:
                     break
             elif direction == 'up':
-                if self.position[0] - i >= 0 and self.map[self.position[0] - i][self.position[1]] != 1:
+                if self.position[0] - i >= 0 and self.map[self.position[0] - i][self.position[1]] != 1 and self.map[self.position[0]][self.position[1] - i] != 4:
                     self.valid_vision.append((self.position[0] - i, self.position[1]))
                 else:
                     break
             elif direction == 'down':
-                if self.position[0] + i < self.bound[0] and self.map[self.position[0] + i][self.position[1]] != 1:
+                if self.position[0] + i < self.bound[0] and self.map[self.position[0] + i][self.position[1]] != 1 and self.map[self.position[0]][self.position[1] - i] != 4:
                     self.valid_vision.append((self.position[0] + i, self.position[1]))
                 else:
                     break
