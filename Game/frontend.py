@@ -2,15 +2,14 @@ from backend import current_map, Agent, Hider
 from screens import menu_screen
 import pygame
 
-'''
+
 for i in range(len(current_map.hider_position)):
     hider = Hider(current_map.hider_position[i], 3, (current_map.num_rows, current_map.num_cols), current_map.map_array)
     hider.announce(5)
-'''
 
 ANNOUNCE_RANGE = 3
 SEEKER_VISION_RADIUS = 3
-HIDER_VISION_RADIUS = 3
+HIDER_VISION_RADIUS = 2
 map_ratio = current_map.num_rows / current_map.num_cols
 
 INFO_BAR = 70
