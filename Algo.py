@@ -173,7 +173,8 @@ class Agent:
         self.vision_radius = vision_radius
         self.bound = bound
         self.score = 0
-        self.map_array = map.map_array
+        # self.map_array = map.map_array
+        self.map = map
 
         self.directions = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1 , 1), (-1, -1)] # go right, left, down, up, down_right, down_left, up_right, up_left 
         self.directions_word = ["right", "left", "down", "up", "down_right", "down_left", "up_right", "up_left"]
@@ -429,18 +430,18 @@ class Seeker(Agent):
     def catch(self, hider_position):
         return self.position == hider_position
 
-    def updatePoint(self, level, hider_position):
+    def updatePoint(self, hider_position):
         # Catch hider
-        if (self.catch(self, hider_position)):
-            self.point = 20
+        if (self.catch(hider_position)):
+            self.score += 20
         else:
-            self.point -= 1
+            self.score -= 1
     
     def printSeekerMap(self):
         printMap(self.map_array)
     def updateSeeker(self, position):
-        self.map_array[self.position[0]][self.position[1]] = 0
-        self.map_array[position[0]][position[1]] = 3
+        self.map.map_array[self.position[0]][self.position[1]] = 0
+        self.map.map_array[position[0]][position[1]] = 3
         self.position = position
         
     def updateHiderPosition(self, position):
@@ -466,8 +467,8 @@ class Seeker(Agent):
             print("Vision down right: ", self.valid_vision_down_right[i])
 
 class Hider(Agent):
-    def __init__(self, position, vision_radius, bound, map, id=0, score=0):
-        Agent.__init__(self, position, vision_radius, bound, map, id=0, score=0)
+    def __init__(self, position, vision_radius, bound, map):
+        Agent.__init__(self, position, vision_radius, bound, map)
         self.id = 2
     def unit_range(self):
         top = self.position[0] - ANNOUNCE_RANGE
@@ -727,6 +728,7 @@ if level == "1":
     current_map2.read_txt_file("test_map2.txt")
     printMap(current_map2.map_array)
     print()
+
     print("----------------------------------------------------------")
     print("Khoi tao Seeker")
     #Khoi tao seeker
@@ -736,7 +738,8 @@ if level == "1":
     #Khoi tao hider
     print("Khoi tao Hider")
     currentHider = Hider(current_map2.hider_position[0], 3, bound, current_map2)
-
+    print("----------------------------------------------------------")
+    
     #Thuat toan search Hider o day
     while (currentSeeker.hiderNum > 0):
         #Tao ra 1 vi tri ngau nhien, cho Seeker di toi day, (Vi tri nay khong duoc la tuong, obstacles)
@@ -744,13 +747,11 @@ if level == "1":
         while (current_map2.map_array[randomPosition[0]][randomPosition[1]] != 0):
             randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
         print("Random Position Seeker will explore: ", randomPosition)
-        print()
-        print("----------------------------------------------------------")
 
         #Search duong di tu Seeker toi vi tri ngau nhien nay
         finalState = a_star(currentSeeker, randomPosition)
         path = trackPath(finalState)
-        print("Path to the random position: ")
+        print("PATH TO THIS RANDOM POSITION")
 
         #in ra cac step can di tu vi tri cua seeker den vi tri ngau nhien nay
         for i, state in enumerate(path):
@@ -759,12 +760,15 @@ if level == "1":
         #Seeker bat dau di chuyen
         for i in range(len(path)):
             currentSeeker.updateSeeker(path[i].currentPosition) #cap nhat vi tri cua Seeker sau moi lan di chuyen
-            
+            currentSeeker.updatePoint(current_map2.hider_position[0])
+            print("[SCORE]: ", currentSeeker.score)   
             #Neu trong luc di ma Hider nam trong vision cua Seeker thi thay doi lo trinh di
             if (isHiderInVision(currentSeeker, current_map2)): 
                 #Search duong di tu Seeker toi vi tri cua Hider khi phat hien
                 finalState = a_star(currentSeeker, current_map2.hider_position[0])
+                
                 currentSeeker.updateHiderPosition(current_map2.hider_position[0])
+  
                 path = trackPath(finalState)
                 print("Path to the hider: ")
                 for i, state in enumerate(path):
@@ -772,13 +776,13 @@ if level == "1":
                 print("----------------------------------------------------------")
                 for i in range(len(path)):
                     currentSeeker.updateSeeker(path[i].currentPosition)
+                    currentSeeker.updatePoint(current_map2.hider_position[0])
+                    print("[SCORE]: ", currentSeeker.score) 
                 #Sau khi bat duoc hider, giam so luong no xuong 1, neu khong con hider thi end game
                 currentSeeker.hiderNum -= 1
-                currentSeeker.printSeekerMap()
-                print("Hider caught")       
+                print("Hider caught")    
                 print("End Game")
                 break
-        currentSeeker.printSeekerMap()
 
 if level == "2":
     print()
