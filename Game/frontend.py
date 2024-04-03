@@ -97,6 +97,7 @@ def draw_agent(i, j, isSeeker):
 level_map = []
 running = True
 while running:
+<<<<<<< Updated upstream
 	if len(level_map) == 0:
 		menu_screen(font, level_map)
 		if len(level_map) != 2:
@@ -105,6 +106,13 @@ while running:
 		pygame.display.quit()
 		screen = pygame.display.set_mode([WIDTH, HEIGHT])
 		pygame.display.set_caption("HideAndSeek")
+=======
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			running = False
+		elif event.type == pygame:
+			pass
+>>>>>>> Stashed changes
 
 	timer.tick(fps)
 	if counter < 39:
