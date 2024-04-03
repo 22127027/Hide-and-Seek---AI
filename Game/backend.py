@@ -313,7 +313,13 @@ class Agent:
         self.directions_word = ["right", "left", "down", "up", "down_right", "down_left", "up_right", "up_left"]
         self.current_direction = None
 
+
         self.valid_vision = []
+
+        self.invalid_vision_left = False
+        self.invalid_vision_up = False
+        self.invalid_vision_down = False
+        self.invalid_vision_right = False
 
         self.invalid_vision_up_left = []
         self.invalid_vision_up_right = []
@@ -339,7 +345,7 @@ class Agent:
             if (direction == 'up_left' and abs(row - col) < abs(self.position[0] - self.position[1])) or \
                (direction == 'up_right' and abs(row - col) > abs(self.position[0] - self.position[1])) or \
                (direction == 'down_left' and abs(row + col) > abs(self.position[0] + self.position[1])) or \
-               (direction == 'down_right' and abs(row + col) < abs(self.position[0] + self.position[1])):
+               (direction == 'down_right' and abs(row + col) > abs(self.position[0] + self.position[1])):
                 return True
         return False
     
@@ -409,25 +415,33 @@ class Agent:
     def check_vision_in_direction(self, direction):
         for i in range(1, self.vision_radius + 1):
             if direction == 'left':
-                if self.position[1] - i >= 0 and self.map[self.position[0]][self.position[1] - i] != 1 and self.map[self.position[0]][self.position[1] - i] != 4:
+                if self.position[1] - i >= 0 and self.map[self.position[0]][self.position[1] - i] != 1 and self.map[self.position[0]][self.position[1] - i] != 4 and not self.invalid_vision_left:
                     self.valid_vision.append((self.position[0], self.position[1] - i))
                 else:
-                    break
+                    self.invalid_vision_left = True
+                    self.invalid_vision_up_left.append((self.position[0], self.position[1] - i))
+                    self.invalid_vision_down_left.append((self.position[0], self.position[1] - i))
             elif direction == 'right':
-                if self.position[1] + i < self.bound[1] and self.map[self.position[0]][self.position[1] + i] != 1 and self.map[self.position[0]][self.position[1] + i] != 4:
+                if self.position[1] + i < self.bound[1] and self.map[self.position[0]][self.position[1] + i] != 1 and self.map[self.position[0]][self.position[1] + i] != 4 and not self.invalid_vision_right:
                     self.valid_vision.append((self.position[0], self.position[1] + i))
                 else:
-                    break
+                    self.invalid_vision_right = True
+                    self.invalid_vision_up_right.append((self.position[0], self.position[1] + i))
+                    self.invalid_vision_down_right.append((self.position[0], self.position[1] + i))
             elif direction == 'up':
-                if self.position[0] - i >= 0 and self.map[self.position[0] - i][self.position[1]] != 1 and self.map[self.position[0] - i][self.position[1]] != 4:
+                if self.position[0] - i >= 0 and self.map[self.position[0] - i][self.position[1]] != 1 and self.map[self.position[0] - i][self.position[1]] != 4 and not self.invalid_vision_up:
                     self.valid_vision.append((self.position[0] - i, self.position[1]))
                 else:
-                    break
+                    self.invalid_vision_up = True
+                    self.invalid_vision_up_left.append((self.position[0] - i, self.position[1]))
+                    self.invalid_vision_up_right.append((self.position[0] - i, self.position[1]))
             elif direction == 'down':
-                if self.position[0] + i < self.bound[0] and self.map[self.position[0] + i][self.position[1]] != 1 and self.map[self.position[0] + i][self.position[1]] != 4:
+                if self.position[0] + i < self.bound[0] and self.map[self.position[0] + i][self.position[1]] != 1 and self.map[self.position[0] + i][self.position[1]] != 4 and not self.invalid_vision_down:
                     self.valid_vision.append((self.position[0] + i, self.position[1]))
                 else:
-                    break
+                    self.invalid_vision_down = True
+                    self.invalid_vision_down_left.append((self.position[0] + i, self.position[1]))
+                    self.invalid_vision_down_right.append((self.position[0] + i, self.position[1]))
     
     def clear_current_vision(self):
         self.valid_vision.clear()
@@ -602,8 +616,8 @@ class Hider(Agent):
         current_map.map_array[rand_row_index + top][rand_col_index + left] = 5
         
 # Usage
-filename = "D:/SourceCode/IoAI/Project1/Assets/5maps/test_map.txt"
-# filename = "D:/AI_PROJECT/Hide-and-Seek---AI/Game/Assets/5maps/test_map.txt"
+# filename = "D:/SourceCode/IoAI/Project1/Assets/5maps/test_map.txt"
+filename = "D:/AI_PROJECT/Hide-and-Seek---AI/Game/Assets/5maps/test_map.txt"
 current_map = Map()
 current_map.read_txt_file(filename)
 current_map.createMap(1)
