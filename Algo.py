@@ -335,7 +335,7 @@ class Agent:
 
     def agent_go_right(self):
         print("Right")
-        self.move(0)
+        self.move()
 
     def agent_go_left(self):
         print("Left")
@@ -464,82 +464,82 @@ class Seeker(Agent):
         for i in range(len(self.valid_vision_down_right)):
             print("Vision down right: ", self.valid_vision_down_right[i])
 
-# class Hider(Agent):
-#     def __init__(self, position, vision_radius, bound, map, id=0, score=0):
-#         Agent.__init__(self, position, vision_radius, bound, map, id=0, score=0)
-#         self.id = 2
-#     def unit_range(self):
-#         top = self.position[0] - ANNOUNCE_RANGE
-#         left = self.position[1] - ANNOUNCE_RANGE
-#         bottom = self.position[0] + ANNOUNCE_RANGE
-#         right = self.position[1] + ANNOUNCE_RANGE
+class Hider(Agent):
+    def __init__(self, position, vision_radius, bound, map, id=0, score=0):
+        Agent.__init__(self, position, vision_radius, bound, map, id=0, score=0)
+        self.id = 2
+    def unit_range(self):
+        top = self.position[0] - ANNOUNCE_RANGE
+        left = self.position[1] - ANNOUNCE_RANGE
+        bottom = self.position[0] + ANNOUNCE_RANGE
+        right = self.position[1] + ANNOUNCE_RANGE
 
-#         if (self.position[0] - ANNOUNCE_RANGE < 0):
-#             index = 1
-#             while True:
-#                 if (self.position[0] - ANNOUNCE_RANGE + index >= 0):
-#                     top = self.position[0] - ANNOUNCE_RANGE + index
-#                     break
-#                 else: index = index + 1
-#         if (self.position[1] - ANNOUNCE_RANGE < 0):
-#             index = 1
-#             while True:
-#                 if (self.position[1] - ANNOUNCE_RANGE + index >= 0):
-#                     left = self.position[1] - ANNOUNCE_RANGE + index
-#                     break
-#                 else: index = index + 1
+        if (self.position[0] - ANNOUNCE_RANGE < 0):
+            index = 1
+            while True:
+                if (self.position[0] - ANNOUNCE_RANGE + index >= 0):
+                    top = self.position[0] - ANNOUNCE_RANGE + index
+                    break
+                else: index = index + 1
+        if (self.position[1] - ANNOUNCE_RANGE < 0):
+            index = 1
+            while True:
+                if (self.position[1] - ANNOUNCE_RANGE + index >= 0):
+                    left = self.position[1] - ANNOUNCE_RANGE + index
+                    break
+                else: index = index + 1
 
-#         if (self.position[0] + ANNOUNCE_RANGE > current_map.num_rows - 1):
-#             index = 1
-#             while True:
-#                 if (self.position[0] + ANNOUNCE_RANGE - index <= current_map.num_rows - 1):
-#                     bottom = self.position[0] + ANNOUNCE_RANGE - index
-#                     break
-#                 else: index = index + 1
+        if (self.position[0] + ANNOUNCE_RANGE > current_map.num_rows - 1):
+            index = 1
+            while True:
+                if (self.position[0] + ANNOUNCE_RANGE - index <= current_map.num_rows - 1):
+                    bottom = self.position[0] + ANNOUNCE_RANGE - index
+                    break
+                else: index = index + 1
 
-#         if (self.position[1] + ANNOUNCE_RANGE > current_map.num_cols - 1):
-#             index = 1
-#             while True:
-#                 if (self.position[1] + ANNOUNCE_RANGE - index <= current_map.num_rows - 1):
-#                     right = self.position[1] + ANNOUNCE_RANGE - index
-#                     break
-#                 else: index = index + 1
+        if (self.position[1] + ANNOUNCE_RANGE > current_map.num_cols - 1):
+            index = 1
+            while True:
+                if (self.position[1] + ANNOUNCE_RANGE - index <= current_map.num_rows - 1):
+                    right = self.position[1] + ANNOUNCE_RANGE - index
+                    break
+                else: index = index + 1
 
 
-#         matrix_range = []
-#         rows = bottom + 1 - top
-#         cols = right + 1 - left
-#         for i in range(top, bottom + 1):
-#             row = []
-#             for j in range(left, right + 1):
-#                 if (current_map.map_array[i][j] != None):
-#                   row.append(current_map.map_array[i][j])
+        matrix_range = []
+        rows = bottom + 1 - top
+        cols = right + 1 - left
+        for i in range(top, bottom + 1):
+            row = []
+            for j in range(left, right + 1):
+                if (current_map.map_array[i][j] != None):
+                  row.append(current_map.map_array[i][j])
             
-#             matrix_range.append(row)
+            matrix_range.append(row)
 
-#         return matrix_range, rows, cols, top, left, bottom, right
+        return matrix_range, rows, cols, top, left, bottom, right
     
-#     def announce(self, seekers_moves):
-#         if (seekers_moves == 5):
-#             rows = 0
-#             cols = 0
-#             matrix_range, rows, cols, top, left, bottom, right = self.unit_range()
-#             while True:
-#                 rand_row_index = random.randint(0, rows - 1)
-#                 rand_col_index = random.randint(0, cols - 1)
-#                 if (matrix_range[rand_row_index][rand_col_index] == 0):
-#                     break
+    def announce(self, seekers_moves, currentMap):
+        if (seekers_moves == 5):
+            rows = 0
+            cols = 0
+            matrix_range, rows, cols, top, left, bottom, right = self.unit_range()
+            while True:
+                rand_row_index = random.randint(0, rows - 1)
+                rand_col_index = random.randint(0, cols - 1)
+                if (matrix_range[rand_row_index][rand_col_index] == 0):
+                    break
                 
-#             matrix_range[rand_row_index][rand_col_index] = 5
-#             for row in matrix_range:
-#                 print(row)
-#             print()
+            matrix_range[rand_row_index][rand_col_index] = 5
+            for row in matrix_range:
+                print(row)
+            print()
 
 
-#         current_map.map_array[rand_row_index + top][rand_col_index + left] = 5     
-#         announce_coordinate = (rand_row_index + top, rand_col_index + left)
+        currentMap.map_array[rand_row_index + top][rand_col_index + left] = 5     
+        announce_coordinate = (rand_row_index + top, rand_col_index + left)
         
-#         return announce_coordinate
+        return announce_coordinate
 
 
 # #ALGORITHM GOES HERE
@@ -613,13 +613,13 @@ def isHiderInVision(Seeker, Map):
 #         return True
 #     return False
 
-def isAnnouncementHeard(Seeker):
-    for i in range(len(Seeker.vision)):
-        for j in range(len(Seeker.vision[i])):
-            if Seeker.vision[i][j] == 5:
-                print("Announcement heard at position: ", i, j)
-                return True
-    return False
+# def isAnnouncementHeard(Seeker):
+#     for i in range(len(Seeker.vision)):
+#         for j in range(len(Seeker.vision[i])):
+#             if Seeker.vision[i][j] == 5:
+#                 print("Announcement heard at position: ", i, j)
+#                 return True
+#     return False
 
 def calculateHeuristic(current, goal):
     return abs(current[0] - goal[0]) + abs(current[1] - goal[1])
@@ -747,35 +747,49 @@ level = input("Enter the level: ")
 if level == "1":
     print()
     print("----------------------------------------------------------")
-    print("Test Map 2")
+    print("Khoi tao Map")
+    #Khoi tao map
     current_map2 = Map()
     current_map2.read_txt_file("test_map2.txt")
     printMap(current_map2.map_array)
     print()
     print("----------------------------------------------------------")
+    print("Khoi tao Seeker")
+    #Khoi tao seeker
     bound = (current_map2.num_rows, current_map2.num_cols)
     currentSeeker = Seeker(current_map2.seeker_position[0], 3, bound, current_map2)
+
+    #Khoi tao hider
+    print("Khoi tao Hider")
+    currentHider = Hider(current_map2.hider_position[0], 3, bound, current_map2)
+
+    #Thuat toan search Hider o day
     while (currentSeeker.hiderNum > 0):
+        #Tao ra 1 vi tri ngau nhien, cho Seeker di toi day, (Vi tri nay khong duoc la tuong, obstacles)
         randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
         while (current_map2.map_array[randomPosition[0]][randomPosition[1]] != 0):
             randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
-        # randomPosition = (4, 17)
         print("Random Position Seeker will explore: ", randomPosition)
         print()
         print("----------------------------------------------------------")
+
+        #Search duong di tu Seeker toi vi tri ngau nhien nay
         finalState = a_star(currentSeeker, randomPosition)
         path = trackPath(finalState)
         print("Path to the random position: ")
+
+        #in ra cac step can di tu vi tri cua seeker den vi tri ngau nhien nay
         for i, state in enumerate(path):
             print("Step", i + 1, ": explore", state.currentPosition)
-        # print()
+        
+        #Seeker bat dau di chuyen
         for i in range(len(path)):
-            currentSeeker.updateSeeker(path[i].currentPosition)
-            # print()
-            # currentSeeker.printSeekerMap()
-            if (isHiderInVision(currentSeeker, current_map2)):
+            currentSeeker.updateSeeker(path[i].currentPosition) #cap nhat vi tri cua Seeker sau moi lan di chuyen
+            
+            #Neu trong luc di ma Hider nam trong vision cua Seeker thi thay doi lo trinh di
+            if (isHiderInVision(currentSeeker, current_map2)): 
+                #Search duong di tu Seeker toi vi tri cua Hider khi phat hien
                 finalState = a_star(currentSeeker, current_map2.hider_position[0])
-                print("Update Seeker Map")
                 currentSeeker.updateHiderPosition(current_map2.hider_position[0])
                 path = trackPath(finalState)
                 print("Path to the hider: ")
@@ -798,6 +812,7 @@ if level == "2":
     print()
     print("----------------------------------------------------------")
     print("Test Map 3")
+    #Khoi tao map
     current_map3 = Map()
     current_map3.read_txt_file("test_map3.txt")
     printMap(current_map3.map_array)
