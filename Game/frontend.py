@@ -69,24 +69,7 @@ def draw_agent(i, j, isSeeker):
 	#Draw vision
 	agent = Agent((i, j), VISION_RADIUS, (current_map.num_rows, current_map.num_cols), current_map.map_array)
 	agent.agent_valid_vision()
-	listOfValidVision = []
-	for valid in agent.valid_vision_left:
-		listOfValidVision.append(valid)
-	for valid in agent.valid_vision_up_left:
-		listOfValidVision.append(valid)
-	for valid in agent.valid_vision_up:
-		listOfValidVision.append(valid)
-	for valid in agent.valid_vision_up_right:
-		listOfValidVision.append(valid)
-	for valid in agent.valid_vision_right:
-		listOfValidVision.append(valid)
-	for valid in agent.valid_vision_down_right:
-		listOfValidVision.append(valid)
-	for valid in agent.valid_vision_down:
-		listOfValidVision.append(valid)
-	for valid in agent.valid_vision_down_left:
-		listOfValidVision.append(valid)	
-	for valid in listOfValidVision:
+	for valid in agent.valid_vision:
 		top_ = valid[1] * block_edge
 		left_ = INFO_BAR + valid[0] * block_edge
 		#Blending transparently
