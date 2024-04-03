@@ -72,6 +72,9 @@ def printMap(map_array):
             #Obstacle Green 
             elif map_array[row][col] == 4:
                 print(Fore.GREEN + str(map_array[row][col]), end = " ")
+            #Announcement Cyan
+            elif map_array[row][col] == 5:
+                print(Fore.CYAN + str(map_array[row][col]), end = " ")
             #Else White
             else:
                 print(Style.RESET_ALL + str(map_array[row][col]), end = " ")
@@ -422,6 +425,7 @@ class Seeker(Agent):
         Agent.__init__(self, position, vision_radius, bound, map)
         self.map_array = copy.deepcopy(map.map_array)
         self.hiderNum = len(map.hider_position)
+        self.moves = 0
         for i in range (0, len(self.map_array)):
             for j in range (0, len(self.map_array[i])):
                 if self.map_array[i][j] == 2:
@@ -443,6 +447,7 @@ class Seeker(Agent):
         self.map.map_array[self.position[0]][self.position[1]] = 0
         self.map.map_array[position[0]][position[1]] = 3
         self.position = position
+        self.moves += 1
         
     def updateHiderPosition(self, position):
         self.map_array[position[0]][position[1]] = 2
@@ -491,18 +496,18 @@ class Hider(Agent):
                     break
                 else: index = index + 1
 
-        if (self.position[0] + ANNOUNCE_RANGE > current_map.num_rows - 1):
+        if (self.position[0] + ANNOUNCE_RANGE > self.map.num_rows - 1):
             index = 1
             while True:
-                if (self.position[0] + ANNOUNCE_RANGE - index <= current_map.num_rows - 1):
+                if (self.position[0] + ANNOUNCE_RANGE - index <= self.map.num_rows - 1):
                     bottom = self.position[0] + ANNOUNCE_RANGE - index
                     break
                 else: index = index + 1
 
-        if (self.position[1] + ANNOUNCE_RANGE > current_map.num_cols - 1):
+        if (self.position[1] + ANNOUNCE_RANGE > self.map.num_cols - 1):
             index = 1
             while True:
-                if (self.position[1] + ANNOUNCE_RANGE - index <= current_map.num_rows - 1):
+                if (self.position[1] + ANNOUNCE_RANGE - index <= self.map.num_rows - 1):
                     right = self.position[1] + ANNOUNCE_RANGE - index
                     break
                 else: index = index + 1
@@ -514,35 +519,29 @@ class Hider(Agent):
         for i in range(top, bottom + 1):
             row = []
             for j in range(left, right + 1):
-                if (current_map.map_array[i][j] != None):
-                  row.append(current_map.map_array[i][j])
+                if (self.map.map_array[i][j] != None):
+                  row.append(self.map.map_array[i][j])
             
             matrix_range.append(row)
 
         return matrix_range, rows, cols, top, left, bottom, right
     
-    def announce(self, seekers_moves, currentMap):
-        if (seekers_moves == 5):
-            rows = 0
-            cols = 0
-            matrix_range, rows, cols, top, left, bottom, right = self.unit_range()
-            while True:
-                rand_row_index = random.randint(0, rows - 1)
-                rand_col_index = random.randint(0, cols - 1)
-                if (matrix_range[rand_row_index][rand_col_index] == 0):
-                    break
-                
-            matrix_range[rand_row_index][rand_col_index] = 5
-            for row in matrix_range:
-                print(row)
-            print()
+    def announce(self):
+        rows = 0
+        cols = 0
+        matrix_range, rows, cols, top, left, bottom, right = self.unit_range()
+        while True:
+            rand_row_index = random.randint(0, rows - 1)
+            rand_col_index = random.randint(0, cols - 1)
+            if (self.map.map_array[rand_row_index + top][rand_col_index + left] == 0):
+                self.map.map_array[rand_row_index + top][rand_col_index + left] = 5
+                break
+            
+        # matrix_range[rand_row_index][rand_col_index] = 5
 
-
-        currentMap.map_array[rand_row_index + top][rand_col_index + left] = 5     
         announce_coordinate = (rand_row_index + top, rand_col_index + left)
         
         return announce_coordinate
-
 
 # #ALGORITHM GOES HERE
 
@@ -603,6 +602,30 @@ def generateNextRandomGoal(Seeker, Map):
     (x, y) = (random.randint(0, Map.num_rows - 1), random.randint(0, Map.num_cols - 1))
     return (x, y)
 
+def isAnnoucementHeard(currentSeeker, annoucementPosition):
+    if annoucementPosition in currentSeeker.valid_vision_left or \
+       annoucementPosition in currentSeeker.valid_vision_right or \
+       annoucementPosition in currentSeeker.valid_vision_up or \
+       annoucementPosition in currentSeeker.valid_vision_down or \
+       annoucementPosition in currentSeeker.valid_vision_up_left or \
+       annoucementPosition in currentSeeker.valid_vision_up_right or \
+       annoucementPosition in currentSeeker.valid_vision_down_left or \
+       annoucementPosition in currentSeeker.valid_vision_down_right:
+        print("Announcement heard at position: ", annoucementPosition)
+        return True
+    return False
+
+def findHiderPosition(currentSeeker, currentHider, annoucementPosition):
+    minRow = max(0, annoucementPosition[0] - 2)
+    maxRow = min(2, annoucementPosition[0] + 2)
+    minCol = max(0, annoucementPosition[1] - 2)
+    maxCol = min(2, annoucementPosition[1] + 1)
+    for i in range(minx, maxx + 1):
+        for j in range(miny, maxy + 1):
+            if (i, j) == 0:
+                hiderPotentialList.append((i, j))
+    return hiderPotentialList
+    
 class SearchState:
     def __init__(self, current_position, goal_position, parent, heuristic, map_array):
         self.currentPosition = current_position 
@@ -717,6 +740,24 @@ def a_star(Seeker, goalPosition):
 #     finalState = a_star(Seeker, Hider.position)
 #     path = trackPath(finalState)
 
+def traceHider(currentSeeker, current_map):
+    #Search duong di tu Seeker toi vi tri cua Hider khi phat hien
+    finalState = a_star(currentSeeker, current_map.hider_position[0])
+                
+    currentSeeker.updateHiderPosition(current_map.hider_position[0])
+  
+    path = trackPath(finalState)
+    print("Path to the hider: ")
+    for i, state in enumerate(path):
+        print("Step", i + 1, ": Go to ", state.currentPosition)
+    for i in range(len(path)):
+        currentSeeker.updateSeeker(path[i].currentPosition)
+        currentSeeker.updatePoint(current_map.hider_position[0])
+        print("Score: ", currentSeeker.score)
+        printMap(currentSeeker.map.map_array)
+        #Sau khi bat duoc hider, giam so luong no xuong 1, neu khong con hider thi end game
+    currentSeeker.hiderNum -= 1
+    print("1 Hider is caught")    
 #MAIN
 level = input("Enter the level: ")
 if level == "1":
@@ -761,28 +802,35 @@ if level == "1":
         for i in range(len(path)):
             currentSeeker.updateSeeker(path[i].currentPosition) #cap nhat vi tri cua Seeker sau moi lan di chuyen
             currentSeeker.updatePoint(current_map2.hider_position[0])
-            print("[SCORE]: ", currentSeeker.score)   
+            printMap(currentSeeker.map.map_array) 
+            #Annoucement
+            if (currentSeeker.moves == 5):
+                annoucementPosition = currentHider.announce()
             #Neu trong luc di ma Hider nam trong vision cua Seeker thi thay doi lo trinh di
             if (isHiderInVision(currentSeeker, current_map2)): 
-                #Search duong di tu Seeker toi vi tri cua Hider khi phat hien
-                finalState = a_star(currentSeeker, current_map2.hider_position[0])
-                
-                currentSeeker.updateHiderPosition(current_map2.hider_position[0])
-  
-                path = trackPath(finalState)
-                print("Path to the hider: ")
-                for i, state in enumerate(path):
-                    print("Step", i + 1, ": Go to ", state.currentPosition)
-                print("----------------------------------------------------------")
-                for i in range(len(path)):
-                    currentSeeker.updateSeeker(path[i].currentPosition)
-                    currentSeeker.updatePoint(current_map2.hider_position[0])
-                    print("[SCORE]: ", currentSeeker.score) 
-                #Sau khi bat duoc hider, giam so luong no xuong 1, neu khong con hider thi end game
-                currentSeeker.hiderNum -= 1
-                print("Hider caught")    
-                print("End Game")
+                traceHider(currentSeeker, current_map2)
                 break
+            if (currentSeeker.moves >= 5):
+                if (isAnnoucementHeard(currentSeeker, annoucementPosition)):
+                    hiderPotentialList = findHiderPosition(currentSeeker, currentHider, annoucementPosition)
+                    for hiderPotentialPosition in hiderPotentialList:
+                        finalState = a_star(currentSeeker, hiderPotentialPosition)
+                        path = trackPath(finalState)
+                        print("Path to: ", hiderPotentialPosition)
+                        for i, state in enumerate(path):
+                            print("Step", i + 1, ": Go to ", state.currentPosition)
+                        for i in range(len(path)):
+                            currentSeeker.updateSeeker(path[i].currentPosition)
+                            currentSeeker.updatePoint(current_map2.hider_position[0])
+                            if (isHiderInVision(currentSeeker, current_map2)):
+                                traceHider(currentSeeker, current_map2)
+                                break
+                        if (currentSeeker.hiderNum == 0):
+                            break
+                    break
+    print("End Game")
+    print("Score: ", currentSeeker.score)
+    print("Total moves: ", currentSeeker.moves)
 
 if level == "2":
     print()
