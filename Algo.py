@@ -598,7 +598,7 @@ def isHiderInVision(Seeker, Map):
 def calculateHeuristic(current, goal):
     return abs(current[0] - goal[0]) + abs(current[1] - goal[1])
 
-def generateNextRandomGoal(Seeker, Map):
+def generateNextRandomGoal(Map):
     (x, y) = (random.randint(0, Map.num_rows - 1), random.randint(0, Map.num_cols - 1))
     return (x, y)
 
@@ -615,13 +615,14 @@ def isAnnoucementHeard(currentSeeker, annoucementPosition):
         return True
     return False
 
-def findHiderPosition(currentSeeker, currentHider, annoucementPosition):
+def findHiderPosition(annoucementPosition):
+    hiderPotentialList = []
     minRow = max(0, annoucementPosition[0] - 2)
     maxRow = min(2, annoucementPosition[0] + 2)
     minCol = max(0, annoucementPosition[1] - 2)
-    maxCol = min(2, annoucementPosition[1] + 1)
-    for i in range(minx, maxx + 1):
-        for j in range(miny, maxy + 1):
+    maxCol = min(2, annoucementPosition[1] + 2)
+    for i in range(minRow, maxRow + 1):
+        for j in range(minCol, maxCol + 1):
             if (i, j) == 0:
                 hiderPotentialList.append((i, j))
     return hiderPotentialList
@@ -753,8 +754,8 @@ def traceHider(currentSeeker, current_map):
     for i in range(len(path)):
         currentSeeker.updateSeeker(path[i].currentPosition)
         currentSeeker.updatePoint(current_map.hider_position[0])
-        print("Score: ", currentSeeker.score)
         printMap(currentSeeker.map.map_array)
+        print()
         #Sau khi bat duoc hider, giam so luong no xuong 1, neu khong con hider thi end game
     currentSeeker.hiderNum -= 1
     print("1 Hider is caught")    
@@ -784,9 +785,9 @@ if level == "1":
     #Thuat toan search Hider o day
     while (currentSeeker.hiderNum > 0):
         #Tao ra 1 vi tri ngau nhien, cho Seeker di toi day, (Vi tri nay khong duoc la tuong, obstacles)
-        randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
+        randomPosition = generateNextRandomGoal(current_map2)
         while (current_map2.map_array[randomPosition[0]][randomPosition[1]] != 0):
-            randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
+            randomPosition = generateNextRandomGoal(current_map2)
         print("Random Position Seeker will explore: ", randomPosition)
 
         #Search duong di tu Seeker toi vi tri ngau nhien nay
@@ -803,6 +804,7 @@ if level == "1":
             currentSeeker.updateSeeker(path[i].currentPosition) #cap nhat vi tri cua Seeker sau moi lan di chuyen
             currentSeeker.updatePoint(current_map2.hider_position[0])
             printMap(currentSeeker.map.map_array) 
+            print()
             #Annoucement
             if (currentSeeker.moves == 5):
                 annoucementPosition = currentHider.announce()
@@ -812,7 +814,7 @@ if level == "1":
                 break
             if (currentSeeker.moves >= 5):
                 if (isAnnoucementHeard(currentSeeker, annoucementPosition)):
-                    hiderPotentialList = findHiderPosition(currentSeeker, currentHider, annoucementPosition)
+                    hiderPotentialList = findHiderPosition(annoucementPosition)
                     for hiderPotentialPosition in hiderPotentialList:
                         finalState = a_star(currentSeeker, hiderPotentialPosition)
                         path = trackPath(finalState)
@@ -822,6 +824,8 @@ if level == "1":
                         for i in range(len(path)):
                             currentSeeker.updateSeeker(path[i].currentPosition)
                             currentSeeker.updatePoint(current_map2.hider_position[0])
+                            printMap(currentSeeker.map.map_array)
+                            print()
                             if (isHiderInVision(currentSeeker, current_map2)):
                                 traceHider(currentSeeker, current_map2)
                                 break
