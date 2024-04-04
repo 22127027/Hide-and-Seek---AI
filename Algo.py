@@ -3,7 +3,7 @@ import heapq
 from colorama import init, Fore, Style
 import copy
 
-ANNOUNCE_RANGE = 2
+ANNOUNCE_RANGE = 3
 class Map:
     def __init__(self):
         self.hider_position = []
@@ -178,26 +178,22 @@ class Agent:
         self.score = 0
         # self.map_array = map.map_array
         self.map = map
-
+        
         self.directions = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1 , 1), (-1, -1)] # go right, left, down, up, down_right, down_left, up_right, up_left 
         self.directions_word = ["right", "left", "down", "up", "down_right", "down_left", "up_right", "up_left"]
         self.current_direction = None
 
-        self.valid_vision_left = []
-        self.valid_vision_right = []
-        self.valid_vision_up = []
-        self.valid_vision_down = []
 
-        self.valid_vision_up_left = []
+        self.valid_vision = []
+
+        self.invalid_vision_left = False
+        self.invalid_vision_up = False
+        self.invalid_vision_down = False
+        self.invalid_vision_right = False
+
         self.invalid_vision_up_left = []
-
-        self.valid_vision_up_right = []
         self.invalid_vision_up_right = []
-
-        self.valid_vision_down_left = []
         self.invalid_vision_down_left = []
-
-        self.valid_vision_down_right = []
         self.invalid_vision_down_right = []
 
         self.valid_movement = []
@@ -233,97 +229,95 @@ class Agent:
         for tpl in invalid_direction:
             tpl_row, tpl_col = tpl[0], tpl[1]
             if direction == 'up_left':
-                if not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (col == tpl_col - 1 and (row == tpl_row or row == tpl_row - 1)) or \
-                not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (row == tpl_row - 1 and (col == tpl_col or col == tpl_col - 1)) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction):
+                if (not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (col == tpl_col - 1 and (row == tpl_row or row == tpl_row - 1))) or \
+                   (not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (row == tpl_row - 1 and (col == tpl_col or col == tpl_col - 1))) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col)) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction)):
                     return False
             elif direction == 'up_right':
-                if not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (col == tpl_col + 1 and (row == tpl_row or row == tpl_row - 1)) or \
-                not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (row == tpl_row - 1 and (col == tpl_col or col == tpl_col + 1)) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction):
+                if (not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (col == tpl_col + 1 and (row == tpl_row or row == tpl_row - 1))) or \
+                   (not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (row == tpl_row - 1 and (col == tpl_col or col == tpl_col + 1))) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col)) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction)):
                     return False
             elif direction == 'down_left':
-                if not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (col == tpl_col - 1 and (row == tpl_row or row == tpl_row + 1)) or \
-                not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (row == tpl_row + 1 and (col == tpl_col or col == tpl_col - 1)) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction):
+                if (not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (col == tpl_col - 1 and (row == tpl_row or row == tpl_row + 1))) or \
+                   (not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (row == tpl_row + 1 and (col == tpl_col or col == tpl_col - 1))) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col)) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction)):
                     return False
             elif direction == 'down_right':
-                if not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (col == tpl_col + 1 and (row == tpl_row or row == tpl_row + 1)) or \
-                not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (row == tpl_row + 1 and (col == tpl_col or col == tpl_col + 1)) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col) or \
-                self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction):
+                if (not self.check_diagonal(row, col, direction) and self.check_diagonal_down(row, col, direction) and (col == tpl_col + 1 and (row == tpl_row or row == tpl_row + 1))) or \
+                   (not self.check_diagonal(row, col, direction) and not self.check_diagonal_down(row, col, direction) and (row == tpl_row + 1 and (col == tpl_col or col == tpl_col + 1))) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and (row == tpl_row or col == tpl_col)) or \
+                   (self.check_diagonal(tpl_row, tpl_col, direction) and self.check_diagonal(row, col, direction)):
                     return False
+                    
         return True
 
     def check_vision_in_diagonal_direction(self, direction):
         for row in range(1, self.vision_radius + 1):
             for col in range(1, self.vision_radius + 1):
                 if direction == 'up_left':
-                    if self.position[0] - row >= 0 and self.position[1] - col >= 0 and self.check_invalid_vision(self.position[0] - row, self.position[1] - col, direction) and self.map_array[self.position[0] - row][self.position[1] - col] == 0:
-                        self.valid_vision_up_left.append((self.position[0] - row, self.position[1] - col))
+                    if self.position[0] - row >= 0 and self.position[1] - col >= 0 and self.check_invalid_vision(self.position[0] - row, self.position[1] - col, direction) and (self.map.map_array[self.position[0] - row][self.position[1] - col] != 1 and self.map.map_array[self.position[0] - row][self.position[1] - col] != 4):
+                        self.valid_vision.append((self.position[0] - row, self.position[1] - col))
                     elif self.position[0] - row >= 0 and self.position[1] - col >= 0:
                         self.invalid_vision_up_left.append((self.position[0] - row, self.position[1] - col))
 
                 elif direction == 'up_right':
-                    if self.position[0] - row >= 0 and self.position[1] + col < self.bound[1] and self.check_invalid_vision(self.position[0] - row, self.position[1] + col, direction) and self.map_array[self.position[0] - row][self.position[1] + col] == 0:
-                        self.valid_vision_up_right.append((self.position[0] - row, self.position[1] + col))
+                    if self.position[0] - row >= 0 and self.position[1] + col < self.bound[1] and self.check_invalid_vision(self.position[0] - row, self.position[1] + col, direction) and (self.map.map_array[self.position[0] - row][self.position[1] + col] != 1 and self.map.map_array[self.position[0] - row][self.position[1] + col] != 4):
+                        self.valid_vision.append((self.position[0] - row, self.position[1] + col))
                     elif self.position[0] - row >= 0 and self.position[1] + col < self.bound[1]:
                         self.invalid_vision_up_right.append((self.position[0] - row, self.position[1] + col))
 
                 elif direction == 'down_left':
-                    if self.position[0] + row < self.bound[0] and self.position[1] - col >= 0 and self.check_invalid_vision(self.position[0] + row, self.position[1] - col, direction) and self.map_array[self.position[0] + row][self.position[1] - col] == 0:
-                        self.valid_vision_down_left.append((self.position[0] + row, self.position[1] - col))
+                    if self.position[0] + row < self.bound[0] and self.position[1] - col >= 0 and self.check_invalid_vision(self.position[0] + row, self.position[1] - col, direction) and (self.map.map_array[self.position[0] + row][self.position[1] - col] != 1 and self.map.map_array[self.position[0] + row][self.position[1] - col] != 4):
+                        self.valid_vision.append((self.position[0] + row, self.position[1] - col))
                     elif self.position[0] + row < self.bound[0] and self.position[1] - col >= 0:
                         self.invalid_vision_down_left.append((self.position[0] + row, self.position[1] - col))
 
                 elif direction == 'down_right':
-                    if self.position[0] + row < self.bound[0] and self.position[1] + col < self.bound[1] and self.check_invalid_vision(self.position[0] + row, self.position[1] + col, direction) and self.map_array[self.position[0] + row][self.position[1] + col] == 0:
-                        self.valid_vision_down_right.append((self.position[0] + row, self.position[1] + col))
+                    if self.position[0] + row < self.bound[0] and self.position[1] + col < self.bound[1] and self.check_invalid_vision(self.position[0] + row, self.position[1] + col, direction) and (self.map.map_array[self.position[0] + row][self.position[1] + col] != 1 and self.map.map_array[self.position[0] + row][self.position[1] + col] != 4):
+                        self.valid_vision.append((self.position[0] + row, self.position[1] + col))
                     elif self.position[0] + row < self.bound[0] and self.position[1] + col < self.bound[1]:
                         self.invalid_vision_down_right.append((self.position[0] + row, self.position[1] + col))
 
     def check_vision_in_direction(self, direction):
         for i in range(1, self.vision_radius + 1):
             if direction == 'left':
-                if self.position[1] - i >= 0 and self.map_array[self.position[0]][self.position[1] - i] == 0:
-                    self.valid_vision_left.append((self.position[0], self.position[1] - i))
+                if self.position[1] - i >= 0 and self.map.map_array[self.position[0]][self.position[1] - i] != 1 and self.map.map_array[self.position[0]][self.position[1] - i] != 4 and not self.invalid_vision_left:
+                    self.valid_vision.append((self.position[0], self.position[1] - i))
                 else:
-                    break
+                    self.invalid_vision_left = True
+                    self.invalid_vision_up_left.append((self.position[0], self.position[1] - i))
+                    self.invalid_vision_down_left.append((self.position[0], self.position[1] - i))
             elif direction == 'right':
-                if self.position[1] + i < self.bound[1] and self.map_array[self.position[0]][self.position[1] + i] == 0:
-                    self.valid_vision_right.append((self.position[0], self.position[1] + i))
+                if self.position[1] + i < self.bound[1] and self.map.map_array[self.position[0]][self.position[1] + i] != 1 and self.map.map_array[self.position[0]][self.position[1] + i] != 4 and not self.invalid_vision_right:
+                    self.valid_vision.append((self.position[0], self.position[1] + i))
                 else:
-                    break
+                    self.invalid_vision_right = True
+                    self.invalid_vision_up_right.append((self.position[0], self.position[1] + i))
+                    self.invalid_vision_down_right.append((self.position[0], self.position[1] + i))
             elif direction == 'up':
-                if self.position[0] - i >= 0 and self.map_array[self.position[0] - i][self.position[1]] == 0:
-                    self.valid_vision_up.append((self.position[0] - i, self.position[1]))
+                if self.position[0] - i >= 0 and self.map.map_array[self.position[0] - i][self.position[1]] != 1 and self.map.map_array[self.position[0] - i][self.position[1]] != 4 and not self.invalid_vision_up:
+                    self.valid_vision.append((self.position[0] - i, self.position[1]))
                 else:
-                    break
+                    self.invalid_vision_up = True
+                    self.invalid_vision_up_left.append((self.position[0] - i, self.position[1]))
+                    self.invalid_vision_up_right.append((self.position[0] - i, self.position[1]))
             elif direction == 'down':
-                if self.position[0] + i < self.bound[0] and self.map_array[self.position[0] + i][self.position[1]] == 0:
-                    self.valid_vision_down.append((self.position[0] + i, self.position[1]))
+                if self.position[0] + i < self.bound[0] and self.map.map_array[self.position[0] + i][self.position[1]] != 1 and self.map.map_array[self.position[0] + i][self.position[1]] != 4 and not self.invalid_vision_down:
+                    self.valid_vision.append((self.position[0] + i, self.position[1]))
                 else:
-                    break
-
+                    self.invalid_vision_down = True
+                    self.invalid_vision_down_left.append((self.position[0] + i, self.position[1]))
+                    self.invalid_vision_down_right.append((self.position[0] + i, self.position[1]))
+    
     def clear_current_vision(self):
-        self.valid_vision_left.clear()
-        self.valid_vision_right.clear()
-        self.valid_vision_up.clear()
-        self.valid_vision_down.clear()
-
-        self.valid_vision_up_left.clear()
+        self.valid_vision.clear()
         self.invalid_vision_up_left.clear()
-
-        self.valid_vision_up_right.clear()
         self.invalid_vision_up_right.clear()
-
-        self.valid_vision_down_left.clear()
         self.invalid_vision_down_left.clear()
-
-        self.valid_vision_down_right.clear()
         self.invalid_vision_down_right.clear()
 
     def find_agent_valid_vision(self):
@@ -332,10 +326,6 @@ class Agent:
         
         for i in range (4, 8):
             self.check_vision_in_diagonal_direction(self.directions_word[i])
-
-    def move(self, direction_index):
-        self.position = tuple(map(sum, zip(self.position, self.directions[direction_index])))
-        self.current_direction = self.directions_word[direction_index]
 
     def agent_go_right(self):
         print("Right")
@@ -475,6 +465,8 @@ class Hider(Agent):
     def __init__(self, position, vision_radius, bound, map):
         Agent.__init__(self, position, vision_radius, bound, map)
         self.id = 2
+        self.hiderPotentialList = []
+        self.announce_coordinate = ()
     def unit_range(self):
         top = self.position[0] - ANNOUNCE_RANGE
         left = self.position[1] - ANNOUNCE_RANGE
@@ -530,6 +522,7 @@ class Hider(Agent):
         rows = 0
         cols = 0
         matrix_range, rows, cols, top, left, bottom, right = self.unit_range()
+        
         while True:
             rand_row_index = random.randint(0, rows - 1)
             rand_col_index = random.randint(0, cols - 1)
@@ -539,10 +532,13 @@ class Hider(Agent):
             
         # matrix_range[rand_row_index][rand_col_index] = 5
 
-        announce_coordinate = (rand_row_index + top, rand_col_index + left)
+        self.announce_coordinate = (rand_row_index + top, rand_col_index + left)
+        self.hiderPotentialList.append(self.announce_coordinate)
+        for i in range(self.announce_coordinate[0] - 3, self.announce_coordinate[0] + 3):
+            for j in range(self.announce_coordinate[1] - 3, self.announce_coordinate[1] + 3):
+                if ((i, j ) != self.announce_coordinate and self.map.map_array[i][j] == 0):
+                    self.hiderPotentialList.append((i, j))
         
-        return announce_coordinate
-
 # #ALGORITHM GOES HERE
 
 def trackPath(finalState): #Function to track the path from initial to the goal
@@ -561,37 +557,10 @@ def checkGoal(currentState): #Check if the current state is the goal state
 def isHiderInVision(Seeker, Map):
     currentSeeker.clear_current_vision()
     currentSeeker.find_agent_valid_vision()
-    for i in range(len(Seeker.valid_vision_left)):
-        if Seeker.valid_vision_left[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_left[i])
-            return True
-    for i in range(len(Seeker.valid_vision_right)):
-        if Seeker.valid_vision_right[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_right[i])
-            return True
-    for i in range(len(Seeker.valid_vision_up)):
-        if Seeker.valid_vision_up[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_up[i])
-            return True
-    for i in range(len(Seeker.valid_vision_down)):
-        if Seeker.valid_vision_down[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_down[i])
-            return True
-    for i in range(len(Seeker.valid_vision_up_left)):
-        if Seeker.valid_vision_up_left[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_up_left[i])
-            return True
-    for i in range(len(Seeker.valid_vision_up_right)):
-        if Seeker.valid_vision_up_right[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_up_right[i])
-            return True
-    for i in range(len(Seeker.valid_vision_down_left)):
-        if Seeker.valid_vision_down_left[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_down_left[i])
-            return True
-    for i in range(len(Seeker.valid_vision_down_right)):
-        if Seeker.valid_vision_down_right[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_down_right[i])
+    
+    for i in range(len(Seeker.valid_vision)):
+        if Seeker.valid_vision[i] in Map.hider_position:
+            print("Hider found at position: ", Seeker.valid_vision[i])
             return True
     return False
 
@@ -602,30 +571,11 @@ def generateNextRandomGoal(Map):
     (x, y) = (random.randint(0, Map.num_rows - 1), random.randint(0, Map.num_cols - 1))
     return (x, y)
 
-def isAnnoucementHeard(currentSeeker, annoucementPosition):
-    if annoucementPosition in currentSeeker.valid_vision_left or \
-       annoucementPosition in currentSeeker.valid_vision_right or \
-       annoucementPosition in currentSeeker.valid_vision_up or \
-       annoucementPosition in currentSeeker.valid_vision_down or \
-       annoucementPosition in currentSeeker.valid_vision_up_left or \
-       annoucementPosition in currentSeeker.valid_vision_up_right or \
-       annoucementPosition in currentSeeker.valid_vision_down_left or \
-       annoucementPosition in currentSeeker.valid_vision_down_right:
-        print("Announcement heard at position: ", annoucementPosition)
+def isAnnoucementHeard(currentSeeker, currentHider):
+    if currentHider.announce_coordinate in currentSeeker.valid_vision:
+        print("Announcement heard at position: ", currentHider.announce_coordinate)
         return True
     return False
-
-def findHiderPosition(annoucementPosition):
-    hiderPotentialList = []
-    minRow = max(0, annoucementPosition[0] - 2)
-    maxRow = min(2, annoucementPosition[0] + 2)
-    minCol = max(0, annoucementPosition[1] - 2)
-    maxCol = min(2, annoucementPosition[1] + 2)
-    for i in range(minRow, maxRow + 1):
-        for j in range(minCol, maxCol + 1):
-            if (i, j) == 0:
-                hiderPotentialList.append((i, j))
-    return hiderPotentialList
     
 class SearchState:
     def __init__(self, current_position, goal_position, parent, heuristic, map_array):
@@ -759,6 +709,38 @@ def traceHider(currentSeeker, current_map):
         #Sau khi bat duoc hider, giam so luong no xuong 1, neu khong con hider thi end game
     currentSeeker.hiderNum -= 1
     print("1 Hider is caught")    
+
+def generateNextRandomGoal(Map, chosen_area):
+    M = len(Map.map_array)    # Number of rows in the map
+    N = len(Map.map_array[0]) # Number of columns in the map
+
+    # Define the four areas of the map
+    area1 = (0, 0, M//2, N//2)           # Top-left area
+    area2 = (0, N//2, M//2, N)           # Top-right area
+    area3 = (M//2, N//2, M, N)           # Bottom-right area
+    area4 = (M//2, 0, M, N//2)           # Bottom-lelf area
+
+    areas = [area1, area2, area3, area4] # List of areas
+
+    # Check if the chosen_area is valid
+    if chosen_area < 1 or chosen_area > 4:
+        raise ValueError("Invalid chosen_area. Must be between 1 and 4.")
+    
+    # Select the specified area
+    area = areas[chosen_area - 1]
+    
+    # Generate random (x, y) coordinates in the selected area
+    x = random.randint(area[0], area[2] - 1)
+    y = random.randint(area[1], area[3] - 1)
+    
+    # Check if Map[x][y] is not equal to 1
+    while Map.map_array[x][y] == 1 or Map.map_array == 4:
+        # Generate new random (x, y) coordinates in the selected area
+        x = random.randint(area[0], area[2] - 1)
+        y = random.randint(area[1], area[3] - 1)
+    
+    return (x, y)
+
 #MAIN
 level = input("Enter the level: ")
 if level == "1":
@@ -781,145 +763,148 @@ if level == "1":
     print("Khoi tao Hider")
     currentHider = Hider(current_map2.hider_position[0], 3, bound, current_map2)
     print("----------------------------------------------------------")
+    if (isHiderInVision(currentSeeker, current_map2)):
+        print("Yes")
+    else:
+        print("No")
     
-    #Thuat toan search Hider o day
-    while (currentSeeker.hiderNum > 0):
-        #Tao ra 1 vi tri ngau nhien, cho Seeker di toi day, (Vi tri nay khong duoc la tuong, obstacles)
-        randomPosition = generateNextRandomGoal(current_map2)
-        while (current_map2.map_array[randomPosition[0]][randomPosition[1]] != 0):
-            randomPosition = generateNextRandomGoal(current_map2)
-        print("Random Position Seeker will explore: ", randomPosition)
+    if (isAnnoucementHeard(currentSeeker, currentHider)):
+        print("Yes")
+    else:
+        print("No")
+#     #Thuat toan search Hider o day
+#     while (currentSeeker.hiderNum > 0):
+#         #Tao ra 1 vi tri ngau nhien, cho Seeker di toi day, (Vi tri nay khong duoc la tuong, obstacles)
+#         randomPosition = generateNextRandomGoal(current_map2, random.randint(1, 4))
+#         print("Random Position Seeker will explore: ", randomPosition)
 
-        #Search duong di tu Seeker toi vi tri ngau nhien nay
-        finalState = a_star(currentSeeker, randomPosition)
-        path = trackPath(finalState)
-        print("PATH TO THIS RANDOM POSITION")
+#         #Search duong di tu Seeker toi vi tri ngau nhien nay
+#         finalState = a_star(currentSeeker, randomPosition)
+#         path = trackPath(finalState)
+#         print("PATH TO THIS RANDOM POSITION")
 
-        #in ra cac step can di tu vi tri cua seeker den vi tri ngau nhien nay
-        for i, state in enumerate(path):
-            print("Step", i + 1, ": explore", state.currentPosition)
+#         #in ra cac step can di tu vi tri cua seeker den vi tri ngau nhien nay
+#         for i, state in enumerate(path):
+#             print("Step", i + 1, ": explore", state.currentPosition)
         
-        #Seeker bat dau di chuyen
-        for i in range(len(path)):
-            currentSeeker.updateSeeker(path[i].currentPosition) #cap nhat vi tri cua Seeker sau moi lan di chuyen
-            currentSeeker.updatePoint(current_map2.hider_position[0])
-            printMap(currentSeeker.map.map_array) 
-            print()
-            #Annoucement
-            if (currentSeeker.moves == 5):
-                annoucementPosition = currentHider.announce()
-            #Neu trong luc di ma Hider nam trong vision cua Seeker thi thay doi lo trinh di
-            if (isHiderInVision(currentSeeker, current_map2)): 
-                traceHider(currentSeeker, current_map2)
-                break
-            if (currentSeeker.moves >= 5):
-                if (isAnnoucementHeard(currentSeeker, annoucementPosition)):
-                    hiderPotentialList = findHiderPosition(annoucementPosition)
-                    for hiderPotentialPosition in hiderPotentialList:
-                        finalState = a_star(currentSeeker, hiderPotentialPosition)
-                        path = trackPath(finalState)
-                        print("Path to: ", hiderPotentialPosition)
-                        for i, state in enumerate(path):
-                            print("Step", i + 1, ": Go to ", state.currentPosition)
-                        for i in range(len(path)):
-                            currentSeeker.updateSeeker(path[i].currentPosition)
-                            currentSeeker.updatePoint(current_map2.hider_position[0])
-                            printMap(currentSeeker.map.map_array)
-                            print()
-                            if (isHiderInVision(currentSeeker, current_map2)):
-                                traceHider(currentSeeker, current_map2)
-                                break
-                        if (currentSeeker.hiderNum == 0):
-                            break
-                    break
-    print("End Game")
-    print("Score: ", currentSeeker.score)
-    print("Total moves: ", currentSeeker.moves)
+#         #Seeker bat dau di chuyen
+#         for i in range(len(path)):
+#             currentSeeker.updateSeeker(path[i].currentPosition) #cap nhat vi tri cua Seeker sau moi lan di chuyen
+#             currentSeeker.updatePoint(current_map2.hider_position[0])
+#             printMap(currentSeeker.map.map_array)
+#             #Annoucement
+#             if (currentSeeker.moves == 5):
+#                 currentHider.announce()
+#             #Neu trong luc di ma Hider nam trong vision cua Seeker thi thay doi lo trinh di
+#             if (isHiderInVision(currentSeeker, current_map2)): 
+#                 traceHider(currentSeeker, current_map2)
+#                 break
+#             if (currentSeeker.moves >= 5):
+#                 if (isAnnoucementHeard(currentSeeker, currentHider)):
+#                     for hiderPotentialPosition in currentHider.hiderPotentialList:
+#                         finalState = a_star(currentSeeker, hiderPotentialPosition)
+#                         path = trackPath(finalState)
+#                         print("Path to: ", hiderPotentialPosition)
+#                         for i, state in enumerate(path):
+#                             print("Step", i + 1, ": Go to ", state.currentPosition)
+#                         for i in range(len(path)):
+#                             currentSeeker.updateSeeker(path[i].currentPosition)
+#                             currentSeeker.updatePoint(current_map2.hider_position[0])
+#                             print()
+#                             if (isHiderInVision(currentSeeker, current_map2)):
+#                                 traceHider(currentSeeker, current_map2)
+#                                 break
+#                         if (currentSeeker.hiderNum == 0):
+#                             break
+#                     break
+#     print("End Game")
+#     print("Score: ", currentSeeker.score)
+#     print("Total moves: ", currentSeeker.moves)
 
-if level == "2":
-    print()
-    print("----------------------------------------------------------")
-    print("Test Map 3")
-    #Khoi tao map
-    current_map3 = Map()
-    current_map3.read_txt_file("test_map3.txt")
-    printMap(current_map3.map_array)
-    print()
-    print("----------------------------------------------------------")
-    print("Seeker Map")
-    bound = (current_map3.num_rows, current_map3.num_cols)
-    currentSeeker = Seeker(current_map3.seeker_position[0], 3, bound, current_map3)
+# if level == "2":
+#     print()
+#     print("----------------------------------------------------------")
+#     print("Test Map 3")
+#     #Khoi tao map
+#     current_map3 = Map()
+#     current_map3.read_txt_file("test_map3.txt")
+#     printMap(current_map3.map_array)
+#     print()
+#     print("----------------------------------------------------------")
+#     print("Seeker Map")
+#     bound = (current_map3.num_rows, current_map3.num_cols)
+#     currentSeeker = Seeker(current_map3.seeker_position[0], 3, bound, current_map3)
 
-    # randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
-    randomPosition = (6, 19)
-    print("Random Position Seeker will explore: ", randomPosition)
-    print()
-    print("----------------------------------------------------------")
-    finalState = a_star(currentSeeker, randomPosition)
-    path = trackPath(finalState)
-    print("Path to the random position: ")
-    for i, state in enumerate(path):
-        print("Step", i + 1, ": explore", state.currentPosition)
-    print()
-    for i in range(len(path)):
-        currentSeeker.updateSeeker(path[i].currentPosition)
-        print()
+#     # randomPosition = generateNextRandomGoal(currentSeeker, current_map2)
+#     randomPosition = (6, 19)
+#     print("Random Position Seeker will explore: ", randomPosition)
+#     print()
+#     print("----------------------------------------------------------")
+#     finalState = a_star(currentSeeker, randomPosition)
+#     path = trackPath(finalState)
+#     print("Path to the random position: ")
+#     for i, state in enumerate(path):
+#         print("Step", i + 1, ": explore", state.currentPosition)
+#     print()
+#     for i in range(len(path)):
+#         currentSeeker.updateSeeker(path[i].currentPosition)
+#         print()
         
-        if (isHiderInVision(currentSeeker, current_map3)):
-            finalState = a_star(currentSeeker, current_map3.hider_position[0])
-            print("Update Seeker Map")
-            currentSeeker.updateHiderPosition(current_map3.hider_position[0])
-            path = trackPath(finalState)
-            print("Path to the hider: ")
-            for i, state in enumerate(path):
-                print("Step", i + 1, ": Go to ", state.currentPosition)
-            print("----------------------------------------------------------")
-            for i in range(len(path)):
-                currentSeeker.updateSeeker(path[i].currentPosition)
-                print()
-            current_map3.map_array[currentSeeker.position[0]][currentSeeker.position[1]] = 0
-            printMap(current_map3.map_array)
-            currentSeeker.hiderNum -= 1
-            print(currentSeeker.hiderNum)
-            print("Hider caught")
-            break
+#         if (isHiderInVision(currentSeeker, current_map3)):
+#             finalState = a_star(currentSeeker, current_map3.hider_position[0])
+#             print("Update Seeker Map")
+#             currentSeeker.updateHiderPosition(current_map3.hider_position[0])
+#             path = trackPath(finalState)
+#             print("Path to the hider: ")
+#             for i, state in enumerate(path):
+#                 print("Step", i + 1, ": Go to ", state.currentPosition)
+#             print("----------------------------------------------------------")
+#             for i in range(len(path)):
+#                 currentSeeker.updateSeeker(path[i].currentPosition)
+#                 print()
+#             current_map3.map_array[currentSeeker.position[0]][currentSeeker.position[1]] = 0
+#             printMap(current_map3.map_array)
+#             currentSeeker.hiderNum -= 1
+#             print(currentSeeker.hiderNum)
+#             print("Hider caught")
+#             break
 
-    randomPosition = (8, 13)
-    finalState = a_star(currentSeeker, randomPosition)
-    path = trackPath(finalState)
-    print("Path to the random position: ")
-    for i, state in enumerate(path):
-        print("Step", i + 1, ": explore", state.currentPosition)
-    print()
-    for i in range(len(path)):
-        currentSeeker.updateSeeker(path[i].currentPosition)
-        print()
-        currentSeeker.printSeekerMap()
-        if (isHiderInVision(currentSeeker, current_map3)):
-            finalState = a_star(currentSeeker, current_map3.hider_position[1])
-            print("Update Seeker Map")
-            currentSeeker.updateHiderPosition(current_map3.hider_position[1])
-            path = trackPath(finalState)
-            print("Path to the hider: ")
-            for i, state in enumerate(path):
-                print("Step", i + 1, ": Go to ", state.currentPosition)
-            print("----------------------------------------------------------")
-            for i in range(len(path)):
-                currentSeeker.updateSeeker(path[i].currentPosition)
-                print()
-                currentSeeker.printSeekerMap()
-            current_map3.map_array[currentSeeker.position[0]][currentSeeker.position[1]] = 0
-            printMap(current_map3.map_array)
-            currentSeeker.hiderNum -= 1
-            print(currentSeeker.hiderNum)
-            print("Hider caught")
-            break
-    print("End Game")
+#     randomPosition = (8, 13)
+#     finalState = a_star(currentSeeker, randomPosition)
+#     path = trackPath(finalState)
+#     print("Path to the random position: ")
+#     for i, state in enumerate(path):
+#         print("Step", i + 1, ": explore", state.currentPosition)
+#     print()
+#     for i in range(len(path)):
+#         currentSeeker.updateSeeker(path[i].currentPosition)
+#         print()
+#         currentSeeker.printSeekerMap()
+#         if (isHiderInVision(currentSeeker, current_map3)):
+#             finalState = a_star(currentSeeker, current_map3.hider_position[1])
+#             print("Update Seeker Map")
+#             currentSeeker.updateHiderPosition(current_map3.hider_position[1])
+#             path = trackPath(finalState)
+#             print("Path to the hider: ")
+#             for i, state in enumerate(path):
+#                 print("Step", i + 1, ": Go to ", state.currentPosition)
+#             print("----------------------------------------------------------")
+#             for i in range(len(path)):
+#                 currentSeeker.updateSeeker(path[i].currentPosition)
+#                 print()
+#                 currentSeeker.printSeekerMap()
+#             current_map3.map_array[currentSeeker.position[0]][currentSeeker.position[1]] = 0
+#             printMap(current_map3.map_array)
+#             currentSeeker.hiderNum -= 1
+#             print(currentSeeker.hiderNum)
+#             print("Hider caught")
+#             break
+#     print("End Game")
 
-    # Seeker = Seeker(current_map.seeker_position[0], 3, (current_map.num_rows, current_map.num_cols), current_map.map_array)
+#     # Seeker = Seeker(current_map.seeker_position[0], 3, (current_map.num_rows, current_map.num_cols), current_map.map_array)
 
-    # finalState = a_star(Seeker, generateNextRandomGoal(Seeker, Map))
-    # path = trackPath(finalState)
-    # for i, state in enumerate(path):
-    #     print(f"Step {i+1}:") 
-    #     print()
+#     # finalState = a_star(Seeker, generateNextRandomGoal(Seeker, Map))
+#     # path = trackPath(finalState)
+#     # for i, state in enumerate(path):
+#     #     print(f"Step {i+1}:") 
+#     #     print()
