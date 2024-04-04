@@ -310,7 +310,12 @@ class Agent:
                     self.invalid_vision_down_right.append((self.position[0] + i, self.position[1]))
     
     def clear_current_vision(self):
+        self.current_direction = None
         self.valid_vision.clear()
+        self.invalid_vision_left = False
+        self.invalid_vision_up = False
+        self.invalid_vision_down = False
+        self.invalid_vision_right = False
         self.invalid_vision_up_left.clear()
         self.invalid_vision_up_right.clear()
         self.invalid_vision_down_left.clear()
@@ -556,48 +561,14 @@ def checkGoal(currentState): #Check if the current state is the goal state
     return False
 
 def isHiderInVision(Seeker, Map):
-    currentSeeker.clear_current_vision()
-    currentSeeker.find_agent_valid_vision()
+    #currentSeeker.clear_current_vision()
+    #currentSeeker.find_agent_valid_vision()
+    print(Seeker.valid_vision)
     for valid in Seeker.valid_vision:
         if Map.map_array[valid[0]][valid[1]] == 2:
             print("Hider found at position: ", valid)
             return valid
     return (-1, -1)
-    '''
-    for i in range(len(Seeker.valid_vision_left)):
-        if Seeker.valid_vision_left[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_left[i])
-            return True
-    for i in range(len(Seeker.valid_vision_right)):
-        if Seeker.valid_vision_right[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_right[i])
-            return True
-    for i in range(len(Seeker.valid_vision_up)):
-        if Seeker.valid_vision_up[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_up[i])
-            return True
-    for i in range(len(Seeker.valid_vision_down)):
-        if Seeker.valid_vision_down[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_down[i])
-            return True
-    for i in range(len(Seeker.valid_vision_up_left)):
-        if Seeker.valid_vision_up_left[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_up_left[i])
-            return True
-    for i in range(len(Seeker.valid_vision_up_right)):
-        if Seeker.valid_vision_up_right[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_up_right[i])
-            return True
-    for i in range(len(Seeker.valid_vision_down_left)):
-        if Seeker.valid_vision_down_left[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_down_left[i])
-            return True
-    for i in range(len(Seeker.valid_vision_down_right)):
-        if Seeker.valid_vision_down_right[i] in Map.hider_position:
-            print("Hider found at position: ", Seeker.valid_vision_down_right[i])
-            return True
-    '''
-    return False
 
 def calculateHeuristic(current, goal):
     return abs(current[0] - goal[0]) + abs(current[1] - goal[1])
@@ -725,11 +696,16 @@ class SearchState:
 
 
 def a_star(Seeker, goalPosition):
+    map_arr = copy.deepcopy(Seeker.map_array)
+    for i in range (0, len(map_arr)):
+        for j in range (0, len(map_arr[0])):
+            if map_arr[i][j] == 2:
+                map_arr[i][j] = 0
     expandedList = set()
     frontier = []
     #Generate the initial state and allocate the heuristic value and push it to the frontier
     # print(type(Seeker.position))
-    initialState = SearchState(Seeker.position, goalPosition, None, calculateHeuristic(Seeker.position, goalPosition), Seeker.map_array)
+    initialState = SearchState(Seeker.position, goalPosition, None, calculateHeuristic(Seeker.position, goalPosition), map_arr)
 
     heapq.heappush(frontier, initialState)
     while frontier:
@@ -813,6 +789,8 @@ if level == "1":
                 print(row)
             
             #Neu trong luc di ma Hider nam trong vision cua Seeker thi thay doi lo trinh di
+            currentSeeker.clear_current_vision()
+            currentSeeker.find_agent_valid_vision()
             hider_pos = isHiderInVision(currentSeeker, current_map2)
             if (hider_pos != (-1, -1)): 
                 #Search duong di tu Seeker toi vi tri cua Hider khi phat hien
