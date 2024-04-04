@@ -801,7 +801,7 @@ if level == "1":
 
             if (hiderPos != (-1, -1)): 
                 print("Hider found at position: ", hiderPos)
-                traceHider(currentSeeker, hiderPos)
+                traceHider(currentSeeker, hiderPos, 1, None)
                 break
 
             if announcePos != (-1, -1):
@@ -820,7 +820,7 @@ if level == "1":
                     print()
                     hiderPos = hiderPosInVision(currentSeeker, current_map2)
                     if (hiderPos != (-1, -1)):
-                        traceHider(currentSeeker, hiderPos)
+                        traceHider(currentSeeker, hiderPos, 1, None)
                         break
                 break
         if (currentSeeker.hiderNum == 0):
@@ -909,7 +909,7 @@ if level == "2":
 
             if (hiderPos != (-1, -1)): 
                 print("Hider found at position: ", hiderPos)
-                traceHider(currentSeeker, hiderPos)
+                traceHider(currentSeeker, hiderPos, 2, currentHiderList)
                 break
 
             if announcePos != (-1, -1):
@@ -928,7 +928,7 @@ if level == "2":
                     print()
                     hiderPos = hiderPosInVision(currentSeeker, current_map2)
                     if (hiderPos != (-1, -1)):
-                        traceHider(currentSeeker, hiderPos)
+                        traceHider(currentSeeker, hiderPos, 2, currentHiderList)
                         break
                 break
         if (currentSeeker.hiderNum == 0):
