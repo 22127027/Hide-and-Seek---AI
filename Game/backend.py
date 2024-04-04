@@ -78,81 +78,82 @@ def printMap(map_array):
         print()
 
 class Obstacles:
-    def __init__(self, top, left, bottom, right, index):
+    def __init__(self, top, left, bottom, right, index, map):
         self.top = top
         self.left = left
         self.bottom = bottom
         self.right = right
         self.index = index
+        self.map = map
     
     def check_go_up(self):
         up_pos = self.top - 1
         for i in range(self.left, self.right + 1):
-            if (up_pos < 0 or current_map.map_array[up_pos][i] != 0):
+            if (up_pos < 0 or self.map.map_array[up_pos][i] != 0):
                 return False
         return True
     
     def check_go_down(self):
         down_pos = self.bottom + 1
         for i in range(self.left, self.right + 1):
-            if (down_pos > current_map.num_rows - 1 or current_map.map_array[down_pos][i] != 0):
+            if (down_pos > self.map.num_rows - 1 or self.map.map_array[down_pos][i] != 0):
                 return False
         return True
 
     def check_go_left(self):
         left_pos = self.left - 1
         for i in range(self.top, self.bottom + 1):
-            if (left_pos < 0 or current_map.map_array[i][left_pos] != 0):
+            if (left_pos < 0 or self.map.map_array[i][left_pos] != 0):
                 return False
         return True
     
     def check_go_right(self):
         right_pos = self.right + 1
         for i in range(self.top, self.bottom + 1):
-            if (right_pos > current_map.num_cols - 1 or current_map.map_array[i][right_pos] != 0):
+            if (right_pos > self.map.num_cols - 1 or self.map.map_array[i][right_pos] != 0):
                 return False
         return True
     
     def move_up(self):
         self.top = self.top - 1
         for i in range(self.left, self.right + 1):
-            current_map.map_array[self.top][i] = 4
-            current_map.map_array[self.bottom][i] = 0
+            self.map.map_array[self.top][i] = 4
+            self.map.map_array[self.bottom][i] = 0
 
         self.bottom = self.bottom - 1
 
-        current_map.obstacles_position[self.index][0] = self.top
-        current_map.obstacles_position[self.index][2] = self.bottom
+        self.map.obstacles_position[self.index][0] = self.top
+        self.map.obstacles_position[self.index][2] = self.bottom
             
     def move_down(self):
         self.bottom = self.bottom + 1
         for i in range(self.left, self.right + 1):
-            current_map.map_array[self.bottom][i] = 4
-            current_map.map_array[self.top][i] = 0
+            self.map.map_array[self.bottom][i] = 4
+            self.map.map_array[self.top][i] = 0
 
         self.top = self.top + 1
-        current_map.obstacles_position[self.index][0] = self.top
-        current_map.obstacles_position[self.index][2] = self.bottom
+        self.map.obstacles_position[self.index][0] = self.top
+        self.map.obstacles_position[self.index][2] = self.bottom
 
     def move_left(self):
         self.left = self.left - 1
         for i in range(self.top, self.bottom + 1):
-            current_map.map_array[i][self.left] = 4
-            current_map.map_array[i][self.right] = 0
+            self.map.map_array[i][self.left] = 4
+            self.map.map_array[i][self.right] = 0
             
         self.right = self.right - 1
-        current_map.obstacles_position[self.index][1] = self.left
-        current_map.obstacles_position[self.index][3] = self.right
+        self.map.obstacles_position[self.index][1] = self.left
+        self.map.obstacles_position[self.index][3] = self.right
 
     def move_right(self):
         self.right = self.right + 1
         for i in range(self.top, self.bottom + 1):
-            current_map.map_array[i][self.right] = 4
-            current_map.map_array[i][self.left] = 0
+            self.map.map_array[i][self.right] = 4
+            self.map.map_array[i][self.left] = 0
 
         self.left = self.left - 1
-        current_map.obstacles_position[self.index][1] = self.left
-        current_map.obstacles_position[self.index][3] = self.right
+        self.map.obstacles_position[self.index][1] = self.left
+        self.map.obstacles_position[self.index][3] = self.right
 
 class Agent:
     def __init__(self, position, vision_radius, bound, map, score=0):
