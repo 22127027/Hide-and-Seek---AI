@@ -445,6 +445,12 @@ class Agent:
     
     def clear_current_vision(self):
         self.valid_vision.clear()
+
+        self.invalid_vision_left = False
+        self.invalid_vision_down = False
+        self.invalid_vision_right = False
+        self.invalid_vision_up = False
+        
         self.invalid_vision_up_left.clear()
         self.invalid_vision_up_right.clear()
         self.invalid_vision_down_left.clear()
