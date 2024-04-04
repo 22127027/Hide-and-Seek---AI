@@ -227,6 +227,16 @@ class Agent:
     def clear_current_vision(self):
         self.valid_vision.clear()
 
+        self.invalid_vision_left = False
+        self.invalid_vision_down = False
+        self.invalid_vision_right = False
+        self.invalid_vision_up = False
+        
+        self.invalid_vision_up_left.clear()
+        self.invalid_vision_up_right.clear()
+        self.invalid_vision_down_left.clear()
+        self.invalid_vision_down_right.clear()
+
         self.invalid_vision_up_left.clear()
         self.invalid_vision_up_right.clear()
         self.invalid_vision_down_left.clear()
@@ -604,8 +614,8 @@ def traceHider(currentSeeker, current_map):
     path = trackPath(finalState)
     print("Path to the hider: ")
     for i, state in enumerate(path):
-        print("Step", i + 1, ": Go to ", state.currentPosition)
-    for i in range(len(path)):
+        print("Step", i, ": Go to ", state.currentPosition)
+    for i in range(1, len(path)):
         currentSeeker.updateSeeker(path[i].currentPosition)
         currentSeeker.updatePoint(current_map.hider_position[0])
         printMap(currentSeeker.map.map_array)
@@ -700,11 +710,11 @@ if level == "1":
 
         #in ra cac step can di tu vi tri cua seeker den vi tri ngau nhien nay
         for i, state in enumerate(path):
-            print("Step", i + 1, ": explore", state.currentPosition)
+            print("Step", i, ": explore", state.currentPosition)
         
         #Seeker bat dau di chuyen
         print("Seeker is moving...")
-        for i in range(len(path)):
+        for i in range(1, len(path)):
             currentSeeker.updateSeeker(path[i].currentPosition) #cap nhat vi tri cua Seeker sau moi lan di chuyen
             currentSeeker.clear_current_vision()
             currentSeeker.find_agent_valid_vision()
@@ -729,8 +739,8 @@ if level == "1":
                 tempPath = trackPath(tempFinalState)
                 print("Path to ANNOUCEMENT: ")
                 for i, state in enumerate(tempPath):
-                    print("Step", i + 1, ": Go to ", state.currentPosition)
-                for i in range(len(tempPath)):
+                    print("Step", i, ": Go to ", state.currentPosition)
+                for i in range(1, len(tempPath)):
                     currentSeeker.updateSeeker(tempPath[i].currentPosition)
                     currentSeeker.clear_current_vision()
                     currentSeeker.find_agent_valid_vision()
@@ -748,3 +758,4 @@ if level == "1":
     print("End Game")
     print("Score: ", currentSeeker.score)
     print("Total moves: ", currentSeeker.moves)
+
