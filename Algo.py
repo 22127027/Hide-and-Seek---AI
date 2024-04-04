@@ -340,6 +340,7 @@ class Seeker(Agent):
     
     def printSeekerMap(self):
         printMap(self.map_array)
+
     def updateSeeker(self, position):
         self.map.map_array[self.position[0]][self.position[1]] = 0
         self.map.map_array[position[0]][position[1]] = 3
@@ -461,12 +462,9 @@ def checkGoal(currentState): #Check if the current state is the goal state
         return True
     return False
 
-def isHiderInVision(Seeker, Map):
-    Seeker.clear_current_vision()
-    Seeker.find_agent_valid_vision()
+def hiderPosInVision(Seeker, Map):
     for valid in Seeker.valid_vision:
         if Map.map_array[valid[0]][valid[1]] == 2:
-            print("Hider found at position: ", valid)
             return valid
     return (-1, -1)
 
@@ -477,13 +475,9 @@ def generateNextRandomGoal(Map):
     (x, y) = (random.randint(0, Map.num_rows - 1), random.randint(0, Map.num_cols - 1))
     return (x, y)
 
-def isAnnouncementHeard(Seeker):
-    Seeker.clear_current_vision()
-    Seeker.find_agent_valid_vision()
+def announcementPosHeard(Seeker):
     for valid in Seeker.valid_vision:
         if Seeker.map.map_array[valid[0]][valid[1]] == 5:
-            print("Annoucement found at position: ", valid)
-            printMap(Seeker.map.map_array)
             return valid
     return (-1, -1)
     
@@ -582,16 +576,16 @@ def a_star(Seeker, goalPosition):
     map_arr = copy.deepcopy(Seeker.map.map_array)
     for i in range (0, len(map_arr)):
         for j in range (0, len(map_arr[0])):
-            if map_arr[i][j] == 2:
+            if map_arr[i][j] == 2 or map_arr[i][j] == 5:
                 map_arr[i][j] = 0
-
+    
     expandedList = set()
     frontier = []
     #Generate the initial state and allocate the heuristic value and push it to the frontier
-    # print(type(Seeker.position))
     initialState = SearchState(Seeker.position, goalPosition, None, calculateHeuristic(Seeker.position, goalPosition), map_arr)
 
     heapq.heappush(frontier, initialState)
+    
     while frontier:
         currentState = heapq.heappop(frontier) #Pop the state with the lowest cost + heuristic value from the frontier
         if checkGoal(currentState): #Late-goal test
@@ -602,11 +596,6 @@ def a_star(Seeker, goalPosition):
             for successor in successors:
                 if successor not in expandedList: #Check whether the successor is in the expanded list previously, if no -> push to frontier
                     heapq.heappush(frontier, successor) #Push the successor to the frontier
-    
-
-# def traceHider(Seeker, Hider):
-#     finalState = a_star(Seeker, Hider.position)
-#     path = trackPath(finalState)
 
 def traceHider(currentSeeker, current_map):
     #Search duong di tu Seeker toi vi tri cua Hider khi phat hien
@@ -675,107 +664,86 @@ if level == "1":
     #Khoi tao hider
     print("Khoi tao Hider")
     currentHider = Hider(current_map2.hider_position[0], 3, bound, current_map2)
-    print(current_map2.seeker_position)
-    print(current_map2.hider_position)
 
     print("----------------------------------------------------------")
     print("Game Start")
+    #Tim area cua seeker
+    M = len(current_map2.map_array)    # Number of rows in the map
+    N = len(current_map2.map_array[0]) # Number of columns in the map
+    area1 = (0, 0, M//2, N//2)           # Top-left area
+    area2 = (0, N//2, M//2, N)           # Top-right area
+    area3 = (M//2, 0, M, N//2)           # Bottom-left area
+    area4 = (M//2, N//2, M, N)           # Bottom-right area
+    areas = [area1, area2, area3, area4] # List of areas
+    # Determine the Seeker's current area
+    seeker_area = None
+    for i, area in enumerate(areas):
+        if area[0] <= currentSeeker.position[0] < area[2] and area[1] <= currentSeeker.position[1] < area[3]:
+            seeker_area = i + 1
+            break
+    if seeker_area is None:
+        raise ValueError("Seeker's position is not within any area.")
     
-    currentHider.announce()
-    #Neu trong luc di ma Hider nam trong vision cua Seeker thi thay doi lo trinh di
-            
-    hider_pos = isHiderInVision(currentSeeker, current_map2)
-    annoucePos = isAnnouncementHeard(currentSeeker)
+    #Thuat toan search Hider o day
+    while (currentSeeker.hiderNum > 0):
+        #Tao ra 1 vi tri ngau nhien, cho Seeker di toi day, (Vi tri nay khong duoc la tuong, obstacles)
+        randomPosition = generateNextRandomGoal(current_map2, seeker_area)
+        print("Random Position Seeker will explore: ", randomPosition)
+        seeker_area += 1
+        if (seeker_area > 4):
+            seeker_area = 1
 
-    if annoucePos != (-1, -1):
-        print("Annoucement found at position: ", annoucePos)
-        print("Seeker position: ", currentSeeker.position)
-        tempFinalState = a_star(currentSeeker, annoucePos)
-        tempPath = trackPath(tempFinalState)
-        print("Path to ANNOUCEMENT: ", annoucePos)
-        for i, state in enumerate(tempPath):
-            print("Step", i + 1, ": Go to ", state.currentPosition)
-        for i in range(len(tempPath)):
-            currentSeeker.updateSeeker(tempPath[i].currentPosition)
+        #Search duong di tu Seeker toi vi tri ngau nhien nay
+        finalState = a_star(currentSeeker, randomPosition)
+        path = trackPath(finalState)
+        print("PATH TO THIS RANDOM POSITION")
+
+        #in ra cac step can di tu vi tri cua seeker den vi tri ngau nhien nay
+        for i, state in enumerate(path):
+            print("Step", i + 1, ": explore", state.currentPosition)
+        
+        #Seeker bat dau di chuyen
+        print("Seeker is moving...")
+        for i in range(len(path)):
+            currentSeeker.updateSeeker(path[i].currentPosition) #cap nhat vi tri cua Seeker sau moi lan di chuyen
+            currentSeeker.clear_current_vision()
+            currentSeeker.find_agent_valid_vision()
             printMap(currentSeeker.map.map_array)
-            print()
-            if (isHiderInVision(currentSeeker, current_map2)):
+            
+            #Annoucement 1st time
+            if (currentSeeker.moves == 5):
+                currentHider.announce()
+            #Neu trong luc di ma Hider nam trong vision cua Seeker thi thay doi lo trinh di
+            
+            hider_pos = hiderPosInVision(currentSeeker, current_map2)
+            announcePos = announcementPosHeard(currentSeeker)
+
+            if (hider_pos != (-1, -1)): 
+                print("Hider found at position: ", hider_pos)
                 traceHider(currentSeeker, current_map2)
                 break
-        tempPath.clear()
 
-    #Tim area cua seeker
-    # M = len(current_map2.map_array)    # Number of rows in the map
-    # N = len(current_map2.map_array[0]) # Number of columns in the map
-    # area1 = (0, 0, M//2, N//2)           # Top-left area
-    # area2 = (0, N//2, M//2, N)           # Top-right area
-    # area3 = (M//2, 0, M, N//2)           # Bottom-left area
-    # area4 = (M//2, N//2, M, N)           # Bottom-right area
-    # areas = [area1, area2, area3, area4] # List of areas
-    # # Determine the Seeker's current area
-    # seeker_area = None
-    # for i, area in enumerate(areas):
-    #     if area[0] <= currentSeeker.position[0] < area[2] and area[1] <= currentSeeker.position[1] < area[3]:
-    #         seeker_area = i + 1
-    #         break
-    # if seeker_area is None:
-    #     raise ValueError("Seeker's position is not within any area.")
-    
-    # #Thuat toan search Hider o day
-    # while (currentSeeker.hiderNum > 0):
-    #     #Tao ra 1 vi tri ngau nhien, cho Seeker di toi day, (Vi tri nay khong duoc la tuong, obstacles)
-    #     randomPosition = generateNextRandomGoal(current_map2, seeker_area)
-    #     print("Random Position Seeker will explore: ", randomPosition)
-    #     seeker_area += 1
-    #     if (seeker_area > 4):
-    #         seeker_area = 1
-
-    #     #Search duong di tu Seeker toi vi tri ngau nhien nay
-    #     finalState = a_star(currentSeeker, randomPosition)
-    #     path = trackPath(finalState)
-    #     print("PATH TO THIS RANDOM POSITION")
-
-    #     #in ra cac step can di tu vi tri cua seeker den vi tri ngau nhien nay
-    #     for i, state in enumerate(path):
-    #         print("Step", i + 1, ": explore", state.currentPosition)
-        
-    #     #Seeker bat dau di chuyen
-    #     print("Seeker is moving...")
-    #     for i in range(len(path)):
-    #         currentSeeker.updateSeeker(path[i].currentPosition) #cap nhat vi tri cua Seeker sau moi lan di chuyen
-    #         # printMap(currentSeeker.map.map_array)
-            
-    #         #Annoucement 1st time
-    #         if (currentSeeker.moves == 5):
-    #             currentHider.announce()
-    #         #Neu trong luc di ma Hider nam trong vision cua Seeker thi thay doi lo trinh di
-            
-    #         hider_pos = isHiderInVision(currentSeeker, current_map2)
-    #         annoucePos = isAnnouncementHeard(currentSeeker)
-
-    #         if (hider_pos != (-1, -1)): 
-    #             traceHider(currentSeeker, current_map2)
-    #             break
-
-    #         if annoucePos != (-1, -1):
-    #             print("Annoucement found at position: ", annoucePos)
-    #             print("Seeker position: ", currentSeeker.position)
-    #             tempFinalState = a_star(currentSeeker, annoucePos)
-    #             tempPath = trackPath(tempFinalState)
-    #             print("Path to ANNOUCEMENT: ", annoucePos)
-    #             for i, state in enumerate(tempPath):
-    #                 print("Step", i + 1, ": Go to ", state.currentPosition)
-    #             for i in range(len(tempPath)):
-    #                 currentSeeker.updateSeeker(tempPath[i].currentPosition)
-    #                 printMap(currentSeeker.map.map_array)
-    #                 print()
-    #                 if (isHiderInVision(currentSeeker, current_map2)):
-    #                     traceHider(currentSeeker, current_map2)
-    #                     break
-    #             tempPath.clear()
-    #     path.clear()
-    #     if (currentSeeker.hiderNum == 0):
-    #         break 
+            if announcePos != (-1, -1):
+                print("Annoucement found at position: ", announcePos)
+                tempFinalState = a_star(currentSeeker, announcePos)
+                tempPath = trackPath(tempFinalState)
+                print("Path to ANNOUCEMENT: ")
+                for i, state in enumerate(tempPath):
+                    print("Step", i + 1, ": Go to ", state.currentPosition)
+                for i in range(len(tempPath)):
+                    currentSeeker.updateSeeker(tempPath[i].currentPosition)
+                    currentSeeker.clear_current_vision()
+                    currentSeeker.find_agent_valid_vision()
+                    
+                    printMap(currentSeeker.map.map_array)
+                    print()
+                    hider_pos = hiderPosInVision(currentSeeker, current_map2)
+                    if (hider_pos != (-1, -1)):
+                        traceHider(currentSeeker, current_map2)
+                        break
+                break
+        if (currentSeeker.hiderNum == 0):
+            break 
 
     print("End Game")
     print("Score: ", currentSeeker.score)
