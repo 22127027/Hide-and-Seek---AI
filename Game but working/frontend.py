@@ -1,5 +1,5 @@
 from backend import *
-from screens import menu_screen, Button
+from screens import *
 import pygame
 
 ANNOUNCE_RANGE = 3
@@ -14,14 +14,14 @@ block_edge = None
 
 def setScreen(current_map):
 	map_ratio = current_map.num_rows / current_map.num_cols
-	WIDTH_ = HEIGHT / map_ratio
+	WIDTH_ = (HEIGHT - INFO_BAR) / map_ratio
 	block_edge_ = (HEIGHT - INFO_BAR) / current_map.num_rows
 	return WIDTH_, block_edge_
 
 pygame.init()
 screen = pygame.display.init()
 timer = pygame.time.Clock()
-fps = 30
+fps = 15
 font = pygame.font.Font('freesansbold.ttf', 27)
 counter = 0
 
@@ -51,7 +51,18 @@ def setImage(block_edge):
 	listOfImage.append(getAnnounceImage(block_edge))
 	return listOfImage
 
-def draw_board(screen, current_map, block_edge, listOfImage):
+def draw_board(screen, current_map, block_edge, listOfImage, score, move, next_pos, message):
+	width, height = pygame.display.get_window_size()
+
+	score_text = font.render("Score: " + str(score), True, "pink")
+	screen.blit(score_text, (10, 10))
+
+	move_text = font.render("Moves: " + str(move), True, "pink")
+	screen.blit(move_text, (10, 40))
+
+	screen.blit(font.render(message, True, "pink"), (width - 400, 10))
+	screen.blit(font.render(str(next_pos), True, "pink"), (width - 250, 40))
+
 	for i in range(current_map.num_rows):
 		for j in range(current_map.num_cols):
 			top = j * block_edge
@@ -76,11 +87,11 @@ def draw_agent(current_map, i, j, isSeeker, block_edge, listOfImage):
 	top =  j * block_edge
 	left = INFO_BAR + i * block_edge
 	if isSeeker == True:
-		screen.blit(listOfImage[2][counter // 10], (top, left))
+		screen.blit(listOfImage[2][counter // 5], (top, left))
 		VISION_RADIUS = SEEKER_VISION_RADIUS
 		VISION_COLOR = (0, 128, 255, 64)
 	else:
-		screen.blit(listOfImage[1][counter // 10], (top, left))
+		screen.blit(listOfImage[1][counter // 5], (top, left))
 		VISION_RADIUS = HIDER_VISION_RADIUS
 		VISION_COLOR = (255, 128, 0, 64)
 	#Draw vision
@@ -94,6 +105,59 @@ def draw_agent(current_map, i, j, isSeeker, block_edge, listOfImage):
 		s = pygame.Surface((block_edge, block_edge), pygame.SRCALPHA)
 		s.fill(VISION_COLOR)
 		screen.blit(s, (top_, left_))
+
+def traceHider(currentSeeker, hiderPos, level, currentHiderList):
+	global counter
+	#Search duong di tu Seeker toi vi tri cua Hider khi phat hien
+	finalState = a_star(currentSeeker, hiderPos)
+	path = trackPath(finalState)
+	print("Path to the hider: ")
+	for i, state in enumerate(path):
+		print("Step", i, ": Go to ", state.currentPosition)
+	for i in range(1, len(path)):
+		timer.tick(fps)
+		if counter < 19:
+			counter += 1
+		else:
+			counter = 0
+		currentSeeker.updateSeeker(path[i].currentPosition)
+		screen.fill((64, 64, 64))
+		draw_board(screen, current_map, block_edge, listOfImage, currentSeeker.score, currentSeeker.moves, hiderPos, "HIDER FOUND! CHASING...")
+		pygame.display.flip()
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				return None
+
+		count = 0
+		if level == 3 and count % 2 == 0:
+			for currentHider in currentHiderList:
+				if currentHider.position == hiderPos:
+					currentHider.clear_current_vision()
+					currentHider.find_agent_valid_vision()
+					seekerPos = seekerPosInVision(currentHider, currentSeeker.map)
+					if seekerPos != (-1, -1):
+						currentHider.Move(currentSeeker.position)
+						screen.fill((64, 64, 64))
+						draw_board(screen, current_map, block_edge, listOfImage, currentSeeker.score, currentSeeker.moves, hiderPos, "HIDER FOUND! CHASING...")
+						pygame.display.flip()
+						for event in pygame.event.get():
+							if event.type == pygame.QUIT:
+								return None
+						hiderPos = currentHider.position
+		count += 1
+		#Sau khi bat duoc hider, giam so luong no xuong 1, neu khong con hider thi end game
+	if (currentSeeker.position == hiderPos):
+		currentSeeker.hiderNum -= 1
+		if currentHiderList != None:
+			for hider in currentHiderList:
+				if hider.position == hiderPos:
+					currentHiderList.remove(hider)
+					break
+		print("1 Hider is caught")   
+		screen.fill((64, 64, 64))
+		draw_board(screen, current_map, block_edge, listOfImage, currentSeeker.score, currentSeeker.moves, hiderPos, "HIDER CAUGHT! CHECKING.")
+		pygame.display.flip()
+		pygame.time.wait(1000)
 
 def gamePlay(level, screen, current_map, block_edge, listOfImage):
 	global counter
@@ -126,7 +190,7 @@ def gamePlay(level, screen, current_map, block_edge, listOfImage):
 			#Seeker bat dau di chuyen
 			for i in range(len(path)):
 				timer.tick(fps)
-				if counter < 39:
+				if counter < 19:
 					counter += 1
 				else:
 					counter = 0
@@ -134,46 +198,202 @@ def gamePlay(level, screen, current_map, block_edge, listOfImage):
 				currentSeeker.updateSeeker(path[i].currentPosition) #cap nhat vi tri cua Seeker sau moi lan di chuyen
 
 				screen.fill((64, 64, 64))
-				draw_board(screen, current_map, block_edge, listOfImage)
+				draw_board(screen, current_map, block_edge, listOfImage, currentSeeker.score, currentSeeker.moves, randomPosition, "GO TO RANDOM POSITION.")
 				pygame.display.flip()
+				for event in pygame.event.get():
+					if event.type == pygame.QUIT:
+						return None
 
 				#Neu trong luc di ma Hider nam trong vision cua Seeker thi thay doi lo trinh di
 				currentSeeker.clear_current_vision()
 				currentSeeker.find_agent_valid_vision()
-				#print(Seeker.valid_vision)
-				hider_pos = isHiderInVision(currentSeeker, current_map)
-				if (hider_pos != (-1, -1)): 
-				#Search duong di tu Seeker toi vi tri cua Hider khi phat hien
-					finalState = a_star(currentSeeker, hider_pos)
-					currentSeeker.updateHiderPosition(hider_pos)
-					path = trackPath(finalState)
-					print("Path to the hider: ")
-					for i, state in enumerate(path):
+
+				if (currentSeeker.moves % 10 == 0 and currentSeeker.moves > 0):
+					for i in range(current_map.num_rows):
+						for j in range(current_map.num_cols):
+							if current_map.map_array[i][j] == 5:
+								current_map.map_array[i][j] = 0
+					currentHider.announce()
+					screen.fill((64, 64, 64))
+					draw_board(screen, current_map, block_edge, listOfImage, currentSeeker.score, currentSeeker.moves, randomPosition, "GO TO RANDOM POSITION.")
+					pygame.display.flip()
+
+				hiderPos = hiderPosInVision(currentSeeker, current_map)
+				announcePos = announcementPosHeard(currentSeeker)
+
+				if (hiderPos != (-1, -1)):
+					print("Hider found at position: ", hiderPos)
+					traceHider(currentSeeker, hiderPos, 1, None)
+					break
+
+				if announcePos != (-1, -1):
+					print("Annoucement found at position: ", announcePos)
+					tempFinalState = a_star(currentSeeker, announcePos)
+					tempPath = trackPath(tempFinalState)
+					for i in range(1, len(tempPath)):
 						timer.tick(fps)
-						print("Step", i + 1, ": Go to ", state.currentPosition)
-						print("----------------------------------------------------------")
-					for i in range(len(path)):
-						timer.tick(fps)
-						if counter < 39:
+						if counter < 19:
 							counter += 1
 						else:
 							counter = 0
-						currentSeeker.updateSeeker(path[i].currentPosition)
-
+						currentSeeker.updateSeeker(tempPath[i].currentPosition)
 						screen.fill((64, 64, 64))
-						draw_board(screen, current_map, block_edge, listOfImage)
+						draw_board(screen, current_map, block_edge, listOfImage, currentSeeker.score, currentSeeker.moves, announcePos, "ANNOUNCEMENT SPOTTED!!!")
 						pygame.display.flip()
-                    #Sau khi bat duoc hider, giam so luong no xuong 1, neu khong con hider thi end game
-					currentSeeker.hiderNum -= 1
-					print("Hider caught")       
-					print("End Game")
+						for event in pygame.event.get():
+							if event.type == pygame.QUIT:
+								return None
+
+						currentSeeker.clear_current_vision()
+						currentSeeker.find_agent_valid_vision()
+
+						hiderPos = hiderPosInVision(currentSeeker, current_map)
+						if (hiderPos != (-1, -1)):
+							traceHider(currentSeeker, hiderPos, 1, None)
+							break
 					break
+			if (currentSeeker.hiderNum == 0):
+				break
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					break
+		print("End Game")
+		print("Score:", currentSeeker.score)
+		print("Total moves:", currentSeeker.moves)
+		if (currentSeeker.hiderNum == 0):
+			win_screen(font, currentSeeker.score, currentSeeker.moves)
+	elif level == 2:
+		print("----------------------------------------------------------")
+		print("Khoi tao Seeker")
+		#Khoi tao seeker
+		bound = (current_map.num_rows, current_map.num_cols)
+		currentSeeker = Seeker(current_map.seeker_position[0], SEEKER_VISION_RADIUS, bound, current_map)
+		#Khoi tao hider
+		print("Khoi tao Hider")
+		currentHiderList = []
+		for i in range(0, len(current_map.hider_position)):
+			currentHider = Hider(current_map.hider_position[i], HIDER_VISION_RADIUS, bound, current_map)
+			currentHiderList.append(currentHider)
+			print(currentHiderList[i].position)
+		print("----------------------------------------------------------")
+		print("Game Start")
+
+		seeker_area = getSeekerArea(current_map, currentSeeker)
+		#Thuat toan search Hider o day
+		while (currentSeeker.hiderNum > 0):
+			#Tao ra 1 vi tri ngau nhien, cho Seeker di toi day, (Vi tri nay khong duoc la tuong, obstacles)
+			randomPosition = generateNextRandomGoal(current_map, seeker_area)
+			print("Random Position Seeker will explore: ", randomPosition)
+			seeker_area += 1
+			if (seeker_area > 8):
+				seeker_area = 1
+
+			#Search duong di tu Seeker toi vi tri ngau nhien nay
+			finalState = a_star(currentSeeker, randomPosition)
+			path = trackPath(finalState)
+			#print("PATH TO THIS RANDOM POSITION")
+
+			#in ra cac step can di tu vi tri cua seeker den vi tri ngau nhien nay
+			#for i, state in enumerate(path):
+			#	print("Step", i, ": explore", state.currentPosition)
+		
+			#Seeker bat dau di chuyen
+			print("Seeker is moving...")
+			for i in range(1, len(path)):
+				timer.tick(fps)
+				if counter < 19:
+					counter += 1
+				else:
+					counter = 0
+
+				currentSeeker.updateSeeker(path[i].currentPosition) #cap nhat vi tri cua Seeker sau moi lan di chuyen
+
+				screen.fill((64, 64, 64))
+				draw_board(screen, current_map, block_edge, listOfImage, currentSeeker.score, currentSeeker.moves, randomPosition, "GO TO RANDOM POSITION.")
+				pygame.display.flip()
+
+				for event in pygame.event.get():
+					if event.type == pygame.QUIT:
+						return None
+
+				currentSeeker.clear_current_vision()
+				currentSeeker.find_agent_valid_vision()
+				#printMap(currentSeeker.map.map_array)
+			
+				#Annoucement 1st time
+				if (currentSeeker.moves % 10 == 0 and currentSeeker.moves > 0):
+					for i in range(current_map.num_rows):
+						for j in range(current_map.num_cols):
+							if current_map.map_array[i][j] == 5:
+								current_map.map_array[i][j] = 0
+					for i in range(0, len(currentHiderList)):
+						currentHiderList[i].announce()
+					screen.fill((64, 64, 64))
+					draw_board(screen, current_map, block_edge, listOfImage, currentSeeker.score, currentSeeker.moves, randomPosition, "GO TO RANDOM POSITION.")
+					pygame.display.flip()
+					for event in pygame.event.get():
+						if event.type == pygame.QUIT:
+							return None
+					
+				#Neu trong luc di ma Hider nam trong vision cua Seeker thi thay doi lo trinh di
+			
+				hiderPos = hiderPosInVision(currentSeeker, current_map)
+				announcePos = announcementPosHeard(currentSeeker)
+
+				if hiderPos != (-1, -1): 
+					print("Hider found at position: ", hiderPos)
+					traceHider(currentSeeker, hiderPos, 2, currentHiderList)
+					break
+
+				if announcePos != (-1, -1):
+					print("Annoucement found at position: ", announcePos)
+					tempFinalState = a_star(currentSeeker, announcePos)
+					tempPath = trackPath(tempFinalState)
+					#print("Path to ANNOUCEMENT: ")
+					#for i, state in enumerate(tempPath):
+					#	print("Step", i, ": Go to ", state.currentPosition)
+					for i in range(1, len(tempPath)):
+						timer.tick(fps)
+						if counter < 19:
+							counter += 1
+						else:
+							counter = 0
+						currentSeeker.updateSeeker(tempPath[i].currentPosition)
+						screen.fill((64, 64, 64))
+						draw_board(screen, current_map, block_edge, listOfImage, currentSeeker.score, currentSeeker.moves, announcePos, "ANNOUNCEMENT SPOTTED!!!")
+						pygame.display.flip()
+
+						for event in pygame.event.get():
+							if event.type == pygame.QUIT:
+								return None
+
+						currentSeeker.clear_current_vision()
+						currentSeeker.find_agent_valid_vision()
+					
+						#printMap(currentSeeker.map.map_array)
+						#print()
+						hiderPos = hiderPosInVision(currentSeeker, current_map)
+						if (hiderPos != (-1, -1)):
+							traceHider(currentSeeker, hiderPos, 2, currentHiderList)
+							break
+					break
+			if (currentSeeker.hiderNum == 0):
+				break
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:
+					break
+		print(currentSeeker.hiderNum)
+		print("End Game")
+		print("Score: ", currentSeeker.score)
+		print("Total moves: ", currentSeeker.moves)
+		if (currentSeeker.hiderNum == 0):
+			win_screen(font, currentSeeker.score, currentSeeker.moves)
 
 level_map = []
 running = True
 while running:
 	timer.tick(fps)
-	if counter < 39:
+	if counter < 19:
 		counter += 1
 	else:
 		counter = 0
@@ -203,14 +423,30 @@ while running:
 		print()
 		gamePlay(1, screen, current_map, block_edge, listOfImage)
 		level_map.clear()
+	elif level_map[0] == 2:
+		print()
+		print("----------------------------------------------------------")
+		print("Khoi tao Map")
+		#Khoi tao map
+		current_map = Map()
+		current_map.read_txt_file(f"Assets/maps/map{level_map[1]}.txt")
+		current_map.createMap(1)
 
-	screen.fill((64, 64, 64))
+		WIDTH, block_edge = setScreen(current_map)
+		listOfImage = setImage(block_edge)
+
+		screen = pygame.display.set_mode([WIDTH, HEIGHT])
+		pygame.display.set_caption(f"HideAndSeek_Level2_Map{level_map[1]}")
+
+		printMap(current_map.map_array)
+		print()
+		gamePlay(2, screen, current_map, block_edge, listOfImage)
+		level_map.clear()
 
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			running = False
 
 	pygame.display.flip()
-
 pygame.quit()
 

@@ -190,7 +190,7 @@ def map_choose_screen(screen, font, level_map):
 
 		pygame.display.flip()
 
-def win_screen(font, point, time_spent):
+def win_screen(font, point, moves):
 	HEIGHT = 400
 	WIDTH = 800
 	pygame.display.quit()
@@ -198,7 +198,7 @@ def win_screen(font, point, time_spent):
 	screen = pygame.display.set_mode((WIDTH, HEIGHT))
 	win_image = pygame.transform.scale(pygame.image.load('Assets/background_images/background4.png'), (WIDTH, HEIGHT))
 	text1 = font.render("SEEKER WON BY CAPTURING ALL HIDERS!", True, 'white')
-	text2 = font.render("Total points: " + str(point) + "   Time spent: " + str(time_spent) + 's', True, 'white')
+	text2 = font.render("Total points: " + str(point) + "   Total moves: " + str(moves), True, 'white')
 	font = pygame.font.Font('freesansbold.ttf', 20)
 	font.italic = True
 	text3 = font.render('Press any key to come back to the main menu...', True, 'gray')
@@ -230,7 +230,7 @@ def win_screen(font, point, time_spent):
 
 		pygame.display.flip()
 
-def lose_screen(font, point, time_spent):
+def lose_screen(font, point, moves):
 	HEIGHT = 400
 	WIDTH = 800
 	pygame.display.quit()
@@ -238,7 +238,7 @@ def lose_screen(font, point, time_spent):
 	screen = pygame.display.set_mode((WIDTH, HEIGHT))
 	win_image = pygame.transform.scale(pygame.image.load('Assets/background_images/background5.png'), (WIDTH, HEIGHT))
 	text1 = font.render("SEEKER LOST BY TIME OUT!", True, 'black')
-	text2 = font.render("Total points: " + str(point) + "   Total time spent: " + str(time_spent) + 's', True, 'black')
+	text2 = font.render("Total points: " + str(point) + "   Total moves: " + str(moves), True, 'black')
 	font = pygame.font.Font('freesansbold.ttf', 20)
 	font.italic = True
 	text3 = font.render('Press any key to come back to the main menu...', True, (255, 255, 255))
