@@ -53,30 +53,6 @@ class Map:
     def updateMap(self, map_array):
         self.map_array = map_array
 
-
-def printMap(map_array):
-    init()
-    for row in range(0, len(map_array)):
-        for col in range(0, len(map_array[row])):
-            if map_array[row][col] == 1:
-                print(Fore.YELLOW + str(map_array[row][col]), end = " ")
-            #Hider Blue
-            elif map_array[row][col] == 2:
-                print(Fore.BLUE + str(map_array[row][col]), end = " ")
-            #Seeker Red
-            elif map_array[row][col] == 3:
-                print(Fore.RED + str(map_array[row][col]), end = " ")
-            #Obstacle Green 
-            elif map_array[row][col] == 4:
-                print(Fore.GREEN + str(map_array[row][col]), end = " ")
-            #Announcement Cyan
-            elif map_array[row][col] == 5:
-                print(Fore.CYAN + str(map_array[row][col]), end = " ")
-            #Else White
-            else:
-                print(Style.RESET_ALL + str(map_array[row][col]), end = " ")
-        print()
-
 class Obstacles:
     def __init__(self, top, left, bottom, right, index, map):
         self.top = top
@@ -114,47 +90,54 @@ class Obstacles:
                 return False
         return True
     
+    def erase_current_position(self):
+        # Clear the previous position of the obstacle on the map
+        for i in range(self.top, self.bottom + 1):
+            for j in range(self.left, self.right + 1):
+                self.map.map_array[i][j] = 0
+
+    def update_new_position(self):
+         # Update the map with the new position of the obstacle
+        for i in range(self.top, self.bottom + 1):
+            for j in range(self.left, self.right + 1):
+                self.map.map_array[i][j] = 4
+
     def move_up(self):
-        self.top = self.top - 1
-        for i in range(self.left, self.right + 1):
-            self.map.map_array[self.top][i] = 4
-            self.map.map_array[self.bottom][i] = 0
-
-        self.bottom = self.bottom - 1
-
-        self.map.obstacles_position[self.index][0] = self.top
-        self.map.obstacles_position[self.index][2] = self.bottom
+        if self.check_go_up():
+            self.erase_current_position()
+            self.top -= 1
+            self.bottom -= 1
+            self.update_new_position()
+            return True
+        return False
             
     def move_down(self):
-        self.bottom = self.bottom + 1
-        for i in range(self.left, self.right + 1):
-            self.map.map_array[self.bottom][i] = 4
-            self.map.map_array[self.top][i] = 0
-
-        self.top = self.top + 1
-        self.map.obstacles_position[self.index][0] = self.top
-        self.map.obstacles_position[self.index][2] = self.bottom
+        if self.check_go_down():
+            self.erase_current_position()
+            self.bottom += 1
+            self.top += 1
+            self.update_new_position()
+            return True
+        return False
 
     def move_left(self):
-        self.left = self.left - 1
-        for i in range(self.top, self.bottom + 1):
-            self.map.map_array[i][self.left] = 4
-            self.map.map_array[i][self.right] = 0
-            
-        self.right = self.right - 1
-        self.map.obstacles_position[self.index][1] = self.left
-        self.map.obstacles_position[self.index][3] = self.right
+        if self.check_go_left():
+            self.erase_current_position()
+            self.left -= 1
+            self.right -= 1
+            self.update_new_position()
+            return True
+        return False
 
     def move_right(self):
-        self.right = self.right + 1
-        for i in range(self.top, self.bottom + 1):
-            self.map.map_array[i][self.right] = 4
-            self.map.map_array[i][self.left] = 0
-
-        self.left = self.left - 1
-        self.map.obstacles_position[self.index][1] = self.left
-        self.map.obstacles_position[self.index][3] = self.right
-
+        if self.check_go_right():
+            self.erase_current_position()
+            self.right += 1
+            self.left += 1
+            self.update_new_position()
+            return True
+        return False
+        
 
 class Agent:
     #Agent k pass nguyen map vo duoc, Hider store 1 cai map khac vs Seeker
@@ -184,8 +167,6 @@ class Agent:
         self.invalid_vision_down_right = []
 
         self.valid_movement = []
-
-        self.obstacles_list = []
         # self.load_obstacles()
 
     def check_diagonal(self, row, col, direction):
@@ -539,65 +520,6 @@ class Hider(Agent):
         elif (index == 7):
             self.agent_go_down_right()        # Move down right
 
-    def findCellsAroundObstacles(self):
-        self.load_obstacles()
-        obstacle = self.obstacles_list[0]
-        if (self.position[1] < obstacle.left):
-            frontierLeft = []
-            minDistance = self.bound[1]
-            indexMin = 0
-            for i in range(obstacle.top, obstacle.bottom + 1):
-                frontierLeft.append(i)
-                if (abs(self.position[0] - i) < minDistance):
-                    minDistance = abs(self.position[0] - i)
-                    indexMin = i
-
-            goalCell = (indexMin, obstacle.left - 1)
-            return goalCell
-        elif (self.position[1] > obstacle.right):
-            frontierRight = []
-            minDistance = self.bound[1]
-            indexMin = 0
-            for i in range(obstacle.top, obstacle.bottom + 1):
-                frontierRight.append(i)
-                if (abs(self.position[0] - i) < minDistance):
-                    minDistance = abs(self.position[0] - i)
-                    indexMin = i
-
-            goalCell = (indexMin, obstacle.right + 1)
-            return goalCell
-    
-        elif (obstacle.left <= self.position[1] <= obstacle.right and self.position[0] < obstacle.top):
-            frontierTop = []
-            minDistance = self.bound[0]
-            indexMin = 0
-            for i in range(obstacle.left, obstacle.right + 1):
-                frontierTop.append(i)
-                if (abs(self.position[1] - i) < minDistance):
-                    minDistance = abs(self.position[1] - i)
-                    indexMin = i
-
-            goalCell = (obstacle.top - 1, indexMin)
-            return goalCell
-        
-        elif (obstacle.left <= self.position[1] <= obstacle.right and self.position[0] > obstacle.top):
-            frontierBottom = []
-            minDistance = self.bound[0]
-            indexMin = 0
-            for i in range(obstacle.left, obstacle.right + 1):
-                frontierBottom.append(i)
-                if (abs(self.position[1] - i) < minDistance):
-                    minDistance = abs(self.position[1] - i)
-                    indexMin = i
-
-            goalCell = (obstacle.bottom + 1, indexMin)
-            return goalCell
-    
-    def load_obstacles(self):
-        for obstacle_pos in self.map.obstacles_position:
-            pos = [x for x in obstacle_pos]
-            obs = Obstacles(pos[0], pos[1], pos[2], pos[3], self.map.obstacles_position.index(obstacle_pos), self.map)
-            self.obstacles_list.append(obs)
 
     def printHiderMap(self):
         printMap(self.map_array)
@@ -605,47 +527,67 @@ class Hider(Agent):
         self.map.map_array[self.position[0]][self.position[1]] = 0
         self.map.map_array[position[0]][position[1]] = 2
         self.position = position
-    #def updateHiderPosition(self, position):
-        #self.map_array[position[0]][position[1]] = 2
-# #ALGORITHM GOES HERE
+    
+    def pull(self, current_map, obstacles_list):
+        position = self.position
+        for obstacle in obstacles_list:
+            if obstacle.top <= self.position[0] <= obstacle.bottom:
+                if (self.position[1] - obstacle.right == 1):
+                    while True: 
+                        if (self.position[1] == current_map.num_cols - 1 or current_map.map_array[self.position[0]][self.position[1] + 1] != 0):
+                            break
+                        else:
+                            self.agent_go_right()
+                            if (obstacle.check_go_right() == False):
+                                self.agent_go_left()
+                                break
+                            obstacle.move_right()
+                            current_map.map_array = self.map.map_array
+                            
 
-def trackPath(finalState): #Function to track the path from initial to the goal
-    path = []
-    currentState = finalState #Backtrack from Goal
-    while currentState is not None:
-        path.insert(0, currentState)
-        currentState = currentState.parent #Backtrack till reaching the root
-    return path
+                    return True
+                
+                elif(self.position[1] - obstacle.left == -1):
+                    while True: 
+                        if (self.position[1] == 0 or current_map.map_array[self.position[0]][self.position[1] - 1] != 0):
+                            break
+                        else:
+                            self.agent_go_left()
+                            if (obstacle.check_go_left() == False):
+                                self.agent_go_right()
+                                break
+                            obstacle.move_left()
+                            current_map.map_array = self.map.map_array
 
-def checkGoal(currentState): #Check if the current state is the goal state
-    if currentState.currentPosition == currentState.goalPosition:
-        return True
-    return False
+                    return True
+            elif obstacle.left <= self.position[1] <= obstacle.right:
+                if(self.position[0] - obstacle.bottom == 1):
+                    while True:
+                        if (self.position[0] == current_map.num_rows - 1 or current_map.map_array[self.position[0] + 1][self.position[1]] != 0):
+                            break
+                        else:
+                            self.agent_go_down()
+                            if (obstacle.check_go_down() == False):
+                                self.agent_go_up()
+                                break
+                            obstacle.move_down()
+                            current_map.map_array = self.map.map_array
 
-def hiderPosInVision(Seeker, Map):
-    for valid in Seeker.valid_vision:
-        if Map.map_array[valid[0]][valid[1]] == 2:
-            return valid
-    return (-1, -1)
+                    return True
+                elif (self.position[0] - obstacle.top == -1):
+                    while True:
+                        if (self.position[0] == 0 or current_map.map_array[self.position[0] - 1][self.position[1]] != 0):
+                            break
+                        else:
+                            self.agent_go_up()
+                            if (obstacle.check_go_down() == False):
+                                self.agent_go_down()
+                                break
+                            obstacle.move_up()
+                            current_map.map_array = self.map.map_array
 
-def calculateHeuristic(current, goal):
-    return abs(current[0] - goal[0]) + abs(current[1] - goal[1])
-
-def generateNextRandomGoal(Map):
-    (x, y) = (random.randint(0, Map.num_rows - 1), random.randint(0, Map.num_cols - 1))
-    return (x, y)
-
-def announcementPosHeard(Seeker):
-    for valid in Seeker.valid_vision:
-        if Seeker.map.map_array[valid[0]][valid[1]] == 5:
-            return valid
-    return (-1, -1)
-
-def seekerPosInVision(Hider, Map):
-    for valid in Hider.valid_vision:
-        if Map.map_array[valid[0]][valid[1]] == 3:
-            return valid
-    return (-1, -1)
+                    return True
+        return False
 class SearchState:
     def __init__(self, current_position, goal_position, parent, heuristic, map_array):
         self.currentPosition = current_position 
@@ -737,8 +679,72 @@ class SearchState:
         return successors
 
 
-def a_star(Seeker, goalPosition):
-    map_arr = copy.deepcopy(Seeker.map.map_array)
+# #ALGORITHM GOES HERE
+
+def printMap(map_array):
+    init()
+    for row in range(0, len(map_array)):
+        for col in range(0, len(map_array[row])):
+            if map_array[row][col] == 1:
+                print(Fore.YELLOW + str(map_array[row][col]), end = " ")
+            #Hider Blue
+            elif map_array[row][col] == 2:
+                print(Fore.BLUE + str(map_array[row][col]), end = " ")
+            #Seeker Red
+            elif map_array[row][col] == 3:
+                print(Fore.RED + str(map_array[row][col]), end = " ")
+            #Obstacle Green 
+            elif map_array[row][col] == 4:
+                print(Fore.GREEN + str(map_array[row][col]), end = " ")
+            #Announcement Cyan
+            elif map_array[row][col] == 5:
+                print(Fore.CYAN + str(map_array[row][col]), end = " ")
+            #Else White
+            else:
+                print(Style.RESET_ALL + str(map_array[row][col]), end = " ")
+        print()
+
+
+def trackPath(finalState): #Function to track the path from initial to the goal
+    path = []
+    currentState = finalState #Backtrack from Goal
+    while currentState is not None:
+        path.insert(0, currentState)
+        currentState = currentState.parent #Backtrack till reaching the root
+    return path
+
+def checkGoal(currentState): #Check if the current state is the goal state
+    if currentState.currentPosition == currentState.goalPosition:
+        return True
+    return False
+
+def hiderPosInVision(Seeker, Map):
+    for valid in Seeker.valid_vision:
+        if Map.map_array[valid[0]][valid[1]] == 2:
+            return valid
+    return (-1, -1)
+
+def calculateHeuristic(current, goal):
+    return abs(current[0] - goal[0]) + abs(current[1] - goal[1])
+
+def generateNextRandomGoal(Map):
+    (x, y) = (random.randint(0, Map.num_rows - 1), random.randint(0, Map.num_cols - 1))
+    return (x, y)
+
+def announcementPosHeard(Seeker):
+    for valid in Seeker.valid_vision:
+        if Seeker.map.map_array[valid[0]][valid[1]] == 5:
+            return valid
+    return (-1, -1)
+
+def seekerPosInVision(Hider, Map):
+    for valid in Hider.valid_vision:
+        if Map.map_array[valid[0]][valid[1]] == 3:
+            return valid
+    return (-1, -1)
+
+def a_star(currentAgent, goalPosition):
+    map_arr = copy.deepcopy(currentAgent.map.map_array)
     for i in range (0, len(map_arr)):
         for j in range (0, len(map_arr[0])):
             if map_arr[i][j] == 2 or map_arr[i][j] == 5:
@@ -747,7 +753,7 @@ def a_star(Seeker, goalPosition):
     expandedList = set()
     frontier = []
     #Generate the initial state and allocate the heuristic value and push it to the frontier
-    initialState = SearchState(Seeker.position, goalPosition, None, calculateHeuristic(Seeker.position, goalPosition), map_arr)
+    initialState = SearchState(currentAgent.position, goalPosition, None, calculateHeuristic(currentAgent.position, goalPosition), map_arr)
 
     heapq.heappush(frontier, initialState)
     
@@ -821,6 +827,58 @@ def generateNextRandomGoal(Map, chosen_area):
         y = random.randint(area[1], area[3] - 1)
     
     return (x, y)
+
+def findCellsAroundObstacles(currentHider, obstacle):
+    if (currentHider.position[1] < obstacle.left):
+        frontierLeft = []
+        minDistance = currentHider.bound[1]
+        indexMin = 0
+        for i in range(obstacle.top, obstacle.bottom + 1):
+            frontierLeft.append(i)
+            if (abs(currentHider.position[0] - i) < minDistance):
+                minDistance = abs(currentHider.position[0] - i)
+                indexMin = i
+
+        goalCell = (indexMin, obstacle.left - 1)
+        return goalCell
+    elif (currentHider.position[1] > obstacle.right):
+        frontierRight = []
+        minDistance = currentHider.bound[1]
+        indexMin = 0
+        for i in range(obstacle.top, obstacle.bottom + 1):
+            frontierRight.append(i)
+            if (abs(currentHider.position[0] - i) < minDistance):
+                minDistance = abs(currentHider.position[0] - i)
+                indexMin = i
+
+        goalCell = (indexMin, obstacle.right + 1)
+        return goalCell
+
+    elif (obstacle.left <= currentHider.position[1] <= obstacle.right and currentHider.position[0] < obstacle.top):
+        frontierTop = []
+        minDistance = currentHider.bound[0]
+        indexMin = 0
+        for i in range(obstacle.left, obstacle.right + 1):
+            frontierTop.append(i)
+            if (abs(currentHider.position[1] - i) < minDistance):
+                minDistance = abs(currentHider.position[1] - i)
+                indexMin = i
+
+        goalCell = (obstacle.top - 1, indexMin)
+        return goalCell
+    
+    elif (obstacle.left <= currentHider.position[1] <= obstacle.right and currentHider.position[0] > obstacle.top):
+        frontierBottom = []
+        minDistance = currentHider.bound[0]
+        indexMin = 0
+        for i in range(obstacle.left, obstacle.right + 1):
+            frontierBottom.append(i)
+            if (abs(currentHider.position[1] - i) < minDistance):
+                minDistance = abs(currentHider.position[1] - i)
+                indexMin = i
+
+        goalCell = (obstacle.bottom + 1, indexMin)
+        return goalCell
 
 #MAIN
 level = input("Enter the level: ")
@@ -1146,8 +1204,8 @@ if level == "4":
     #Khoi tao map
     current_map2 = Map()
     current_map2.read_txt_file("test_map4.txt")
-    printMap(current_map2.map_array)
-    print(len(current_map2.hider_position))
+    # printMap(current_map2.map_array)
+    # print(len(current_map2.hider_position))
     print("----------------------------------------------------------")
     print("Khoi tao Seeker")
     #Khoi tao seeker
@@ -1159,9 +1217,29 @@ if level == "4":
     for i in range(0, len(current_map2.hider_position)):
         currentHider = Hider(current_map2.hider_position[i], 3, bound, current_map2)
         currentHiderList.append(currentHider)
-        print(currentHiderList[i].position)
+        # print(currentHiderList[i].position)
     print("----------------------------------------------------------")
-    print("Hider is finding Obstacles")
-    currentHiderList[0].load_obstacles()
-    printMap(current_map2.map_array)
-    
+    print("Hider 1 is finding Obstacles")
+
+    obstacles_list = []
+    for obstacle_pos in current_map2.obstacles_position:
+            pos = [x for x in obstacle_pos]
+            obs = Obstacles(pos[0], pos[1], pos[2], pos[3], current_map2.obstacles_position.index(obstacle_pos), current_map2)
+            obstacles_list.append(obs)
+
+    for i in range(len(currentHiderList)):
+        goalPos = findCellsAroundObstacles(currentHiderList[i], obstacles_list[i])
+        print(goalPos)
+        finalState = a_star(currentHiderList[i], goalPos)
+        path = trackPath(finalState)
+        for j in range(1, len(path)):
+            currentHiderList[i].updateHider(path[j].currentPosition)
+            printMap(currentHiderList[i].map.map_array)
+            print()
+        currentHiderList[i].pull(current_map2, obstacles_list)
+        printMap(current_map2.map_array)
+        print()
+        for j in range(1, len(path)):
+            currentHiderList[i].updateHider(path[len(path) - j - 1].currentPosition)
+            printMap(currentHiderList[i].map.map_array)
+            print()
