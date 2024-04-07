@@ -1256,6 +1256,12 @@ if level == "4":
         #If all of hiders are caught, End game
         if (currentSeeker.hiderNum < 1):
             break 
+        
+        #Limit the steps that seeker can have
+        elif(currentSeeker.moves > 200):
+            print("Seeker reached maximum moves (200)")
+            print("Game Over!")
+
     print("End Game")
     print("Score: ", currentSeeker.score)
     print("Total moves: ", currentSeeker.moves)
