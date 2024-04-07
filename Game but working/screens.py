@@ -237,7 +237,7 @@ def lose_screen(font, point, moves):
 	timer = pygame.time.Clock()
 	screen = pygame.display.set_mode((WIDTH, HEIGHT))
 	win_image = pygame.transform.scale(pygame.image.load('Assets/background_images/background5.png'), (WIDTH, HEIGHT))
-	text1 = font.render("SEEKER LOST BY TIME OUT!", True, 'black')
+	text1 = font.render("SEEKER LOST BY OUT OF MOVES!", True, 'black')
 	text2 = font.render("Total points: " + str(point) + "   Total moves: " + str(moves), True, 'black')
 	font = pygame.font.Font('freesansbold.ttf', 20)
 	font.italic = True
@@ -256,7 +256,7 @@ def lose_screen(font, point, moves):
 				running = False
 
 		screen.blit(win_image, (0, 0))
-		screen.blit(text1, (220, 20))
+		screen.blit(text1, (210, 20))
 		screen.blit(text2, (160, 110))
 
 		timer.tick(60)
